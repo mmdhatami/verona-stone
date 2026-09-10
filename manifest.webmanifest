@@ -1,0 +1,11 @@
+{
+  "name": "فروشگاه سنگ ورونا",
+  "short_name": "سنگ ورونا",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8faf8",
+  "theme_color": "#1269ff",
+  "lang": "fa",
+  "dir": "rtl",
+  "description": "کاتالوگ فروشگاه سنگ ورونا"
+}
