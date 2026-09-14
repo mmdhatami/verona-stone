@@ -1,8 +1,11 @@
 {
   "name": "long-breeze-8d3a",
+  "main": "_worker.js",
   "compatibility_date": "2026-09-11",
   "assets": {
-    "directory": "."
+    "directory": ".",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
   },
   "kv_namespaces": [
     {
