@@ -175,6 +175,7 @@ width:100%;
 height:145px;
 object-fit:cover;
 display:block;
+background:#eee7d8;
 }
 
 .catbody{
@@ -1093,41 +1094,113 @@ const PHONE_KEY="verona_phone";
 
 const ADMIN_PASSWORD="4450";
 
+/*
+=====================================================
+تصاویر پیش‌فرض دسته‌بندی‌ها
+چند نام مختلف برای هر تصویر در نظر گرفته شده
+تا مشکل jpg.jpg / jpg / jpeg / png حل شود.
+=====================================================
+*/
+
 const defaultCategories=[
 
 {
 name:"صفحه کابینت",
-img:"images/page-kabinet.jpg.jpg"
+img:"images/page-kabinet.jpg.jpg",
+images:[
+"images/page-kabinet.jpg.jpg",
+"images/page-kabinet.jpg",
+"images/page-kabinet.jpeg",
+"images/page-kabinet.png",
+"images/page-kabinet.webp",
+"images/page_kabinet.jpg",
+"images/page-kabinet.JPG"
+]
 },
 
 {
 name:"سنگ پله",
-img:"images/pelleh.jpg.jpg"
+img:"images/pelleh.jpg.jpg",
+images:[
+"images/pelleh.jpg.jpg",
+"images/pelleh.jpg",
+"images/pelleh.jpeg",
+"images/pelleh.png",
+"images/pelleh.webp",
+"images/pelle.jpg",
+"images/pelle.jpg.jpg"
+]
 },
 
 {
 name:"تراورتن",
-img:"images/travertine.jpg.jpg"
+img:"images/travertine.jpg.jpg",
+images:[
+"images/travertine.jpg.jpg",
+"images/travertine.jpg",
+"images/travertine.jpeg",
+"images/travertine.png",
+"images/travertine.webp",
+"images/travertin.jpg",
+"images/travertin.jpg.jpg"
+]
 },
 
 {
 name:"مرمریت",
-img:"images/marmerit.jpg.jpg"
+img:"images/marmerit.jpg.jpg",
+images:[
+"images/marmerit.jpg.jpg",
+"images/marmerit.jpg",
+"images/marmerit.jpeg",
+"images/marmerit.png",
+"images/marmerit.webp",
+"images/marmarit.jpg",
+"images/marmarit.jpg.jpg"
+]
 },
 
 {
 name:"سنگ فرش",
-img:"images/farsh.jpg.jpg"
+img:"images/farsh.jpg.jpg",
+images:[
+"images/farsh.jpg.jpg",
+"images/farsh.jpg",
+"images/farsh.jpeg",
+"images/farsh.png",
+"images/farsh.webp",
+"images/sang-farsh.jpg",
+"images/sang-farsh.jpg.jpg"
+]
 },
 
 {
 name:"کریستال و گرانیت",
-img:"images/crystal-granite.jpg.jpg"
+img:"images/crystal-granite.jpg.jpg",
+images:[
+"images/crystal-granite.jpg.jpg",
+"images/crystal-granite.jpg",
+"images/crystal-granite.jpeg",
+"images/crystal-granite.png",
+"images/crystal-granite.webp",
+"images/crystal_granite.jpg",
+"images/crystal-granite.JPG"
+]
 },
 
 {
 name:"المان و زیباسازی",
-img:"images/elamanzibasaazi.jpg.jpg"
+img:"images/elamanzibasaazi.jpg.jpg",
+images:[
+"images/elamanzibasaazi.jpg.jpg",
+"images/elamanzibasaazi.jpg",
+"images/elamanzibasaazi.jpeg",
+"images/elamanzibasaazi.png",
+"images/elamanzibasaazi.webp",
+"images/elaman-zibasaazi.jpg",
+"images/elaman-zibasaazi.jpg.jpg",
+"images/elamanzibazayi.jpg"
+]
 }
 
 ];
@@ -1284,6 +1357,207 @@ encodeURIComponent(
 }
 
 /* ================================================= */
+/* ========== CATEGORY IMAGE FALLBACK ============== */
+/* ================================================= */
+
+/*
+این تابع وقتی عکس دسته‌بندی پیدا نشود،
+نام‌های مختلف فایل را یکی‌یکی امتحان می‌کند.
+*/
+
+function categoryImageCandidates(category){
+
+if(
+category &&
+Array.isArray(category.images) &&
+category.images.length
+){
+
+return category.images;
+
+}
+
+const name=
+norm(category?.name||"");
+
+if(name==="صفحه کابینت"){
+
+return[
+"images/page-kabinet.jpg.jpg",
+"images/page-kabinet.jpg",
+"images/page-kabinet.jpeg",
+"images/page-kabinet.png",
+"images/page-kabinet.webp",
+"images/page_kabinet.jpg"
+];
+
+}
+
+if(name==="سنگ پله"){
+
+return[
+"images/pelleh.jpg.jpg",
+"images/pelleh.jpg",
+"images/pelleh.jpeg",
+"images/pelleh.png",
+"images/pelleh.webp",
+"images/pelle.jpg",
+"images/pelle.jpg.jpg"
+];
+
+}
+
+if(name==="تراورتن"){
+
+return[
+"images/travertine.jpg.jpg",
+"images/travertine.jpg",
+"images/travertine.jpeg",
+"images/travertine.png",
+"images/travertine.webp",
+"images/travertin.jpg",
+"images/travertin.jpg.jpg"
+];
+
+}
+
+if(name==="مرمریت"){
+
+return[
+"images/marmerit.jpg.jpg",
+"images/marmerit.jpg",
+"images/marmerit.jpeg",
+"images/marmerit.png",
+"images/marmerit.webp",
+"images/marmarit.jpg",
+"images/marmarit.jpg.jpg"
+];
+
+}
+
+if(name==="سنگ فرش"){
+
+return[
+"images/farsh.jpg.jpg",
+"images/farsh.jpg",
+"images/farsh.jpeg",
+"images/farsh.png",
+"images/farsh.webp",
+"images/sang-farsh.jpg",
+"images/sang-farsh.jpg.jpg"
+];
+
+}
+
+if(name==="کریستال و گرانیت"){
+
+return[
+"images/crystal-granite.jpg.jpg",
+"images/crystal-granite.jpg",
+"images/crystal-granite.jpeg",
+"images/crystal-granite.png",
+"images/crystal-granite.webp",
+"images/crystal_granite.jpg"
+];
+
+}
+
+if(name==="المان و زیباسازی"){
+
+return[
+"images/elamanzibasaazi.jpg.jpg",
+"images/elamanzibasaazi.jpg",
+"images/elamanzibasaazi.jpeg",
+"images/elamanzibasaazi.png",
+"images/elamanzibasaazi.webp",
+"images/elaman-zibasaazi.jpg",
+"images/elaman-zibasaazi.jpg.jpg",
+"images/elamanzibazayi.jpg"
+];
+
+}
+
+return[
+category?.img||""
+].filter(Boolean);
+
+}
+
+function categoryImageHtml(category){
+
+const candidates=
+categoryImageCandidates(category);
+
+const first=
+candidates[0]||
+"";
+
+const encoded=
+encodeURIComponent(
+JSON.stringify(candidates)
+);
+
+return`
+
+<img
+src="${esc(first)}"
+data-category-images="${esc(encoded)}"
+data-category-index="0"
+onerror="tryNextCategoryImage(this)"
+>
+
+`;
+
+}
+
+function tryNextCategoryImage(img){
+
+try{
+
+const raw=
+img.getAttribute(
+"data-category-images"
+);
+
+const list=
+JSON.parse(
+decodeURIComponent(raw||"")
+);
+
+let index=
+parseInt(
+img.getAttribute(
+"data-category-index"
+)||"0",
+10
+);
+
+index++;
+
+if(index<list.length){
+
+img.setAttribute(
+"data-category-index",
+String(index)
+);
+
+img.src=list[index];
+
+return;
+
+}
+
+}catch(e){}
+
+/* اگر هیچ فایلی پیدا نشد */
+
+img.style.opacity=".25";
+
+img.alt="تصویر دسته‌بندی";
+
+}
+
+/* ================================================= */
 /* ================= CATEGORY MATCH ================= */
 /* ================================================= */
 
@@ -1392,10 +1666,7 @@ box.innerHTML+=`
 
 <div class="cat">
 
-<img
-src="${esc(c.img)}"
-onerror="this.style.opacity=.25"
->
+${categoryImageHtml(c)}
 
 <div class="catbody">
 
@@ -1554,7 +1825,7 @@ behavior:"smooth"
 
 function productCard(p){
 
-return `
+return`
 
 <div class="product">
 
@@ -1904,15 +2175,10 @@ ${categories.map(c=>`
 
 <div class="admin-item">
 
-<img
-src="${esc(c.img)}"
-style="
-width:58px;
-height:45px;
-object-fit:cover;
-border-radius:8px;
-"
->
+${categoryImageHtml(c).replace(
+'<img',
+'<img style="width:58px;height:45px;object-fit:cover;border-radius:8px;"'
+)}
 
 <div class="admin-item-name">
 ${esc(c.name)}
@@ -2085,12 +2351,30 @@ return;
 
 if(editingCategory){
 
+const oldCategory=
+categories.find(
+c=>norm(c.name)===norm(editingCategory)
+);
+
+const oldImages=
+oldCategory?.images||[];
+
 categories=
 categories.map(
 c=>
 norm(c.name)===norm(editingCategory)
 ?
-{name,img}
+{
+...c,
+name,
+img,
+images:
+oldImages.length
+?
+oldImages
+:
+[img]
+}
 :
 c
 );
@@ -2109,7 +2393,8 @@ p
 
 categories.push({
 name,
-img
+img,
+images:[img]
 });
 
 }
@@ -3390,8 +3675,6 @@ return parseFloat(cmMatch[1])/100;
 
 }
 
-/* اعداد فارسی/عددی همراه عرض */
-
 const afterWidth=
 normalized.match(
 /عرض\s*([۰-۹\d]+(?:[.]\d+)?)/i
@@ -3414,8 +3697,6 @@ return n;
 }
 
 }
-
-/* حالت کلمه‌ای مثل عرض سی سانت */
 
 const widthIndex=
 normalized.indexOf("عرض");
@@ -3471,6 +3752,16 @@ String(text||"")
 s=
 normalizePersianNumbers(s);
 
+/*
+اصلاح چند شکل رایج گفتاری
+*/
+
+s=s
+.replace(/مترمربع/g,"متر مربع")
+.replace(/مترمربعی/g,"متر مربع")
+.replace(/متره\s*طول/g,"متر طول")
+.replace(/سانتی\s*متر/g,"سانتیمتر");
+
 const width=
 extractWidth(s);
 
@@ -3478,10 +3769,10 @@ if(!width || width<=0)
 return null;
 
 const isArea=
-/متر\s*مربع|مترمربع|متر\s*مربعی|مربع/.test(s);
+/متر\s*مربع|مربع/.test(s);
 
 const isLength=
-/متر\s*طول|متره\s*طول|طول/.test(s);
+/متر\s*طول|طول/.test(s);
 
 let amount=null;
 
@@ -3490,7 +3781,7 @@ if(isArea){
 amount=
 extractNumberBefore(
 s,
-/متر\s*مربع|مترمربع|مربع/
+/متر\s*مربع|مربع/
 );
 
 }else if(isLength){
@@ -3498,14 +3789,10 @@ s,
 amount=
 extractNumberBefore(
 s,
-/متر\s*طول|متره\s*طول|طول/
+/متر\s*طول|طول/
 );
 
 }else{
-
-/*
-اگر واحد اول مشخص نبود، از ساختار جمله کمک می‌گیریم.
-*/
 
 const areaMatch=
 s.match(
@@ -3526,20 +3813,18 @@ amount===null||
 amount<=0
 ){
 
-/* تلاش برای جملات کلمه‌ای */
-
 const unitIndex=
 isArea
 ?
-s.search(/متر\s*مربع|مترمربع|مربع/)
+s.search(/متر\s*مربع|مربع/)
 :
-s.search(/متر\s*طول|متره\s*طول|طول/);
+s.search(/متر\s*طول|طول/);
 
 if(unitIndex>=0){
 
 const before=
 s.slice(
-Math.max(0,unitIndex-30),
+Math.max(0,unitIndex-40),
 unitIndex
 );
 
@@ -3547,7 +3832,7 @@ amount=
 parseNumberWords(
 before.trim()
 .split(/\s+/)
-.slice(-4)
+.slice(-5)
 .join(" ")
 );
 
@@ -3564,7 +3849,7 @@ return null;
 
 }
 
-return {
+return{
 
 type:
 isArea
@@ -3870,7 +4155,9 @@ function removeNoteVoice(){
 
 if(noteVoiceUrl){
 
-URL.revokeObjectURL(noteVoiceUrl);
+URL.revokeObjectURL(
+noteVoiceUrl
+);
 
 }
 
@@ -4912,8 +5199,7 @@ noteVoiceUrl
 
 }
 
-}
-);
+});
 
 /* ================================================= */
 /* ================= AUTO REFRESH NOTES ============ */
