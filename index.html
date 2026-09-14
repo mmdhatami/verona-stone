@@ -12,28 +12,19 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
 
-*{
- box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
-html{
- scroll-behavior:smooth;
-}
+html{scroll-behavior:smooth}
 
 body{
  margin:0;
  background:#f7f7f3;
  color:#20242a;
- font-family:Vazirmatn,Tahoma,sans-serif;
+ font-family:Vazirmatn,Tahoma,sans-serif
 }
 
-button,input,textarea,select{
- font-family:inherit;
-}
-
-button{
- cursor:pointer;
-}
+button,input,textarea,select{font-family:inherit}
+button{cursor:pointer}
 
 header{
  position:sticky;
@@ -41,7 +32,7 @@ header{
  z-index:100;
  background:rgba(255,255,255,.94);
  backdrop-filter:blur(15px);
- border-bottom:1px solid #e8e8e8;
+ border-bottom:1px solid #e8e8e8
 }
 
 .header-inner{
@@ -52,7 +43,7 @@ header{
  display:flex;
  align-items:center;
  justify-content:space-between;
- gap:10px;
+ gap:10px
 }
 
 .brand{
@@ -63,14 +54,14 @@ header{
  -webkit-background-clip:text;
  background-clip:text;
  color:transparent;
- white-space:nowrap;
+ white-space:nowrap
 }
 
 .header-actions{
  display:flex;
  flex-wrap:wrap;
  gap:7px;
- justify-content:flex-end;
+ justify-content:flex-end
 }
 
 .btn{
@@ -79,34 +70,30 @@ header{
  padding:10px 14px;
  font-size:13px;
  font-weight:700;
- transition:.2s;
+ transition:.2s
 }
 
-.btn:hover{
- transform:translateY(-1px);
-}
+.btn:hover{transform:translateY(-1px)}
 
 .btn.gold{
  background:#1269ff;
- color:white;
+ color:white
 }
 
 .btn.soft{
  background:#eef3ff;
- color:#1456c5;
+ color:#1456c5
 }
 
 .btn.danger{
  background:#ffe9e9;
- color:#d12828;
+ color:#d12828
 }
 
-.adminOnly{
- display:none!important;
-}
+.adminOnly{display:none!important}
 
 body.adminMode .adminOnly{
- display:inline-flex!important;
+ display:inline-flex!important
 }
 
 .adminBadge{
@@ -116,17 +103,15 @@ body.adminMode .adminOnly{
  border-radius:12px;
  padding:8px 11px;
  font-size:11px;
- font-weight:800;
+ font-weight:800
 }
 
-body.adminMode .adminBadge{
- display:inline-flex;
-}
+body.adminMode .adminBadge{display:inline-flex}
 
 main{
  max-width:1250px;
  margin:auto;
- padding:20px 16px 90px;
+ padding:20px 16px 90px
 }
 
 .hero{
@@ -143,25 +128,25 @@ main{
  linear-gradient(90deg,rgba(0,0,0,.58),rgba(0,0,0,.20)),
  url("https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1800&q=90")
  center/cover;
- box-shadow:0 14px 40px rgba(0,0,0,.12);
+ box-shadow:0 14px 40px rgba(0,0,0,.12)
 }
 
 .hero-content{
  color:#fff;
- padding:35px 20px;
+ padding:35px 20px
 }
 
 .hero h1{
  margin:0 0 10px;
  font-family:Lalezar,sans-serif;
- font-size:clamp(31px,6vw,55px);
+ font-size:clamp(31px,6vw,55px)
 }
 
 .hero p{
  margin:0 auto 20px;
  max-width:650px;
  font-size:15px;
- line-height:2;
+ line-height:2
 }
 
 .welcome-card{
@@ -169,7 +154,7 @@ main{
  border:1px solid rgba(255,255,255,.3);
  backdrop-filter:blur(8px);
  padding:22px 25px;
- border-radius:23px;
+ border-radius:23px
 }
 
 .section-title{
@@ -177,12 +162,12 @@ main{
  justify-content:space-between;
  align-items:center;
  gap:10px;
- margin:25px 0 14px;
+ margin:25px 0 14px
 }
 
 .section-title h2{
  margin:0;
- font-size:21px;
+ font-size:21px
 }
 
 .search{
@@ -193,18 +178,18 @@ main{
  background:#fff;
  outline:none;
  font-size:14px;
- margin-bottom:18px;
+ margin-bottom:18px
 }
 
 .search:focus{
  border-color:#1269ff;
- box-shadow:0 0 0 3px rgba(18,105,255,.08);
+ box-shadow:0 0 0 3px rgba(18,105,255,.08)
 }
 
 .categories{
  display:grid;
  grid-template-columns:repeat(2,1fr);
- gap:14px;
+ gap:14px
 }
 
 .category{
@@ -214,19 +199,19 @@ main{
  overflow:hidden;
  box-shadow:0 7px 22px rgba(0,0,0,.06);
  transition:.25s;
- cursor:pointer;
+ cursor:pointer
 }
 
 .category:hover{
  transform:translateY(-3px);
- box-shadow:0 13px 30px rgba(0,0,0,.10);
+ box-shadow:0 13px 30px rgba(0,0,0,.10)
 }
 
 .category-image{
  height:155px;
  position:relative;
  overflow:hidden;
- background:#e9e9e9;
+ background:#e9e9e9
 }
 
 .category-image img{
@@ -234,33 +219,31 @@ main{
  height:100%;
  display:block;
  object-fit:cover;
- transition:.35s;
+ transition:.35s
 }
 
 .category:hover .category-image img{
- transform:scale(1.04);
+ transform:scale(1.04)
 }
 
-.category-body{
- padding:15px;
-}
+.category-body{padding:15px}
 
 .category-body h3{
  margin:0 0 6px;
- font-size:16px;
+ font-size:16px
 }
 
 .category-body p{
  margin:0;
  color:#777;
  font-size:12px;
- line-height:1.8;
+ line-height:1.8
 }
 
 .products{
  display:grid;
  grid-template-columns:repeat(2,1fr);
- gap:14px;
+ gap:14px
 }
 
 .product{
@@ -268,61 +251,57 @@ main{
  border:1px solid #ececec;
  border-radius:20px;
  overflow:hidden;
- box-shadow:0 6px 20px rgba(0,0,0,.05);
+ box-shadow:0 6px 20px rgba(0,0,0,.05)
 }
 
 .product-image{
  height:190px;
  background:#eee;
  overflow:hidden;
- cursor:pointer;
+ cursor:pointer
 }
 
 .product-image img{
  width:100%;
  height:100%;
  object-fit:cover;
- display:block;
+ display:block
 }
 
-.product-body{
- padding:14px;
-}
+.product-body{padding:14px}
 
 .product h3{
  margin:0 0 8px;
- font-size:15px;
+ font-size:15px
 }
 
 .product-desc{
  color:#777;
  font-size:12px;
  line-height:1.8;
- min-height:42px;
+ min-height:42px
 }
 
 .price{
  font-weight:800;
  color:#1269ff;
- margin-top:9px;
+ margin-top:9px
 }
 
 .old-price{
  color:#999;
  text-decoration:line-through;
  font-size:12px;
- margin-left:7px;
+ margin-left:7px
 }
 
 .actions{
  display:flex;
  gap:6px;
- margin-top:12px;
+ margin-top:12px
 }
 
-.actions .btn{
- flex:1;
-}
+.actions .btn{flex:1}
 
 .empty{
  text-align:center;
@@ -330,7 +309,7 @@ main{
  background:#fff;
  border-radius:20px;
  color:#777;
- border:1px dashed #ddd;
+ border:1px dashed #ddd
 }
 
 .calculator-card{
@@ -338,7 +317,7 @@ main{
  border-radius:22px;
  padding:20px;
  margin-top:25px;
- box-shadow:0 8px 25px rgba(0,0,0,.06);
+ box-shadow:0 8px 25px rgba(0,0,0,.06)
 }
 
 .notice{
@@ -348,24 +327,22 @@ main{
  padding:13px;
  line-height:1.9;
  font-size:12px;
- margin-bottom:15px;
+ margin-bottom:15px
 }
 
 .grid2{
  display:grid;
  grid-template-columns:1fr 1fr;
- gap:10px;
+ gap:10px
 }
 
-.field{
- margin-bottom:12px;
-}
+.field{margin-bottom:12px}
 
 .field label{
  display:block;
  font-size:12px;
  font-weight:700;
- margin-bottom:6px;
+ margin-bottom:6px
 }
 
 .field input,
@@ -376,19 +353,19 @@ main{
  border:1px solid #ddd;
  border-radius:12px;
  outline:none;
- background:#fff;
+ background:#fff
 }
 
 .field textarea{
  min-height:100px;
- resize:vertical;
+ resize:vertical
 }
 
 .bottom-call{
  position:fixed;
  bottom:15px;
  right:15px;
- z-index:120;
+ z-index:120
 }
 
 .bottom-call a{
@@ -402,7 +379,7 @@ main{
  border-radius:50px;
  box-shadow:0 8px 25px rgba(18,105,255,.3);
  font-size:13px;
- font-weight:800;
+ font-weight:800
 }
 
 .modal{
@@ -413,12 +390,10 @@ main{
  display:none;
  align-items:center;
  justify-content:center;
- padding:15px;
+ padding:15px
 }
 
-.modal.show{
- display:flex;
-}
+.modal.show{display:flex}
 
 .modal-box{
  background:#fff;
@@ -427,7 +402,7 @@ main{
  overflow:auto;
  border-radius:25px;
  padding:20px;
- box-shadow:0 20px 60px rgba(0,0,0,.25);
+ box-shadow:0 20px 60px rgba(0,0,0,.25)
 }
 
 .modal-head{
@@ -435,12 +410,10 @@ main{
  align-items:center;
  justify-content:space-between;
  gap:10px;
- margin-bottom:15px;
+ margin-bottom:15px
 }
 
-.modal-head h3{
- margin:0;
-}
+.modal-head h3{margin:0}
 
 .close{
  border:0;
@@ -448,7 +421,7 @@ main{
  width:35px;
  height:35px;
  border-radius:50%;
- font-size:18px;
+ font-size:18px
 }
 
 .photo-preview{
@@ -457,13 +430,13 @@ main{
  object-fit:cover;
  border-radius:18px;
  background:#eee;
- margin-bottom:10px;
+ margin-bottom:10px
 }
 
 .photo-buttons{
  display:grid;
  grid-template-columns:1fr 1fr;
- gap:8px;
+ gap:8px
 }
 
 .photo-buttons button{
@@ -472,7 +445,7 @@ main{
  border-radius:13px;
  background:#eef3ff;
  color:#1456c5;
- font-weight:700;
+ font-weight:700
 }
 
 footer{
@@ -481,48 +454,38 @@ footer{
  padding:25px 16px 80px;
  color:#777;
  text-align:center;
- font-size:12px;
+ font-size:12px
 }
 
 @media(min-width:700px){
+
  .categories{
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(4,1fr)
  }
 
  .products{
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(4,1fr)
  }
 
- .category-image{
-  height:190px;
- }
+ .category-image{height:190px}
 }
 
 @media(max-width:600px){
- .header-inner{
-  align-items:flex-start;
- }
 
- .brand{
-  font-size:24px;
- }
+ .header-inner{align-items:flex-start}
 
- .header-actions{
-  max-width:210px;
- }
+ .brand{font-size:24px}
+
+ .header-actions{max-width:210px}
 
  .header-actions .btn{
   padding:8px 10px;
-  font-size:11px;
+  font-size:11px
  }
 
- .hero{
-  min-height:285px;
- }
+ .hero{min-height:285px}
 
- .grid2{
-  grid-template-columns:1fr;
- }
+ .grid2{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -530,216 +493,446 @@ footer{
 <body>
 
 <header>
- <div class="header-inner">
-  <div class="brand">ورونا</div>
+<div class="header-inner">
 
-  <div class="header-actions">
-   <span class="adminBadge">🔐 حالت مدیریت فعال</span>
-   <button class="btn soft" onclick="openAdminLogin()">🔐 مدیریت</button>
-   <button class="btn soft adminOnly" onclick="logoutAdmin()">خروج مدیریت</button>
-   <button class="btn soft adminOnly" onclick="openSettings()">⚙ تنظیمات</button>
-   <button class="btn gold adminOnly" onclick="openProduct()">＋ محصول جدید</button>
-  </div>
- </div>
+<div class="brand">ورونا</div>
+
+<div class="header-actions">
+
+<span class="adminBadge">🔐 حالت مدیریت فعال</span>
+
+<button class="btn soft" onclick="openAdminLogin()">
+🔐 مدیریت
+</button>
+
+<button class="btn soft adminOnly" onclick="logoutAdmin()">
+خروج مدیریت
+</button>
+
+<button class="btn soft adminOnly" onclick="openSettings()">
+⚙ تنظیمات
+</button>
+
+<button class="btn gold adminOnly" onclick="openProduct()">
+＋ محصول جدید
+</button>
+
+</div>
+</div>
 </header>
+
 
 <main>
 
- <section class="hero">
-  <div class="hero-content">
-   <div class="welcome-card">
-    <h1>به فروشگاه سنگ ورونا خوش آمدید</h1>
-    <p>
-     انتخابی خاص برای ساختن فضاهایی ماندگار؛
-     انواع سنگ‌های ساختمانی، پله، فرش، صفحات و المان‌های سنگی.
-    </p>
-    <button class="btn gold" onclick="document.getElementById('categories').scrollIntoView()">مشاهده محصولات</button>
-   </div>
-  </div>
- </section>
+<section class="hero">
 
- <input id="search" class="search" placeholder="🔎 جستجوی محصول..." oninput="renderProducts()">
+<div class="hero-content">
 
- <section id="categories">
-  <div class="section-title">
-   <h2>دسته‌بندی محصولات</h2>
-   <button class="btn gold adminOnly" onclick="openProduct()">＋ افزودن</button>
-  </div>
+<div class="welcome-card">
 
-  <div id="categoryList" class="categories"></div>
- </section>
+<h1>به فروشگاه سنگ ورونا خوش آمدید</h1>
 
- <section id="productsSection" style="display:none">
-  <div class="section-title">
-   <h2 id="categoryTitle">محصولات</h2>
+<p>
+انتخابی خاص برای ساختن فضاهایی ماندگار؛
+انواع سنگ‌های ساختمانی، پله، فرش، صفحات و المان‌های سنگی.
+</p>
 
-   <div>
-    <select id="sort" class="btn soft" onchange="renderProducts()">
-     <option value="new">جدیدترین</option>
-     <option value="cheap">ارزان‌ترین</option>
-     <option value="expensive">گران‌ترین</option>
-    </select>
-   </div>
-  </div>
+<button class="btn gold"
+onclick="document.getElementById('categories').scrollIntoView()">
+مشاهده محصولات
+</button>
 
-  <div id="productList" class="products"></div>
- </section>
+</div>
 
- <section class="calculator-card">
-  <div class="section-title">
-   <h2>📐 محاسبه‌گر متراژ مورد نیاز</h2>
-  </div>
+</div>
+</section>
 
-  <div class="notice">
-   نتیجه محاسبه تقریبی و پیشنهادی است و با توجه به برش،
-   پرت کار، شرایط پروژه و نحوه اجرا ممکن است تغییر کند.
-  </div>
 
-  <div class="grid2">
-   <div class="field">
-    <label>طول (متر)</label>
-    <input id="calcLength" type="number" step="0.01" placeholder="مثلاً 5">
-   </div>
+<input
+id="search"
+class="search"
+placeholder="🔎 جستجوی محصول..."
+oninput="renderProducts()"
+>
 
-   <div class="field">
-    <label>عرض (متر)</label>
-    <input id="calcWidth" type="number" step="0.01" placeholder="مثلاً 3">
-   </div>
-  </div>
 
-  <button class="btn gold" onclick="calculate()">محاسبه</button>
+<section id="categories">
 
-  <div id="calcResult" style="margin-top:15px;font-weight:800"></div>
- </section>
+<div class="section-title">
+
+<h2>دسته‌بندی محصولات</h2>
+
+<button
+class="btn gold adminOnly"
+onclick="openProduct()">
+＋ افزودن
+</button>
+
+</div>
+
+<div id="categoryList" class="categories"></div>
+
+</section>
+
+
+<section id="productsSection" style="display:none">
+
+<div class="section-title">
+
+<h2 id="categoryTitle">محصولات</h2>
+
+<select id="sort"
+class="btn soft"
+onchange="renderProducts()">
+
+<option value="new">جدیدترین</option>
+<option value="cheap">ارزان‌ترین</option>
+<option value="expensive">گران‌ترین</option>
+
+</select>
+
+</div>
+
+<div id="productList" class="products"></div>
+
+</section>
+
+
+<section class="calculator-card">
+
+<div class="section-title">
+<h2>📐 محاسبه‌گر متراژ مورد نیاز</h2>
+</div>
+
+<div class="notice">
+نتیجه محاسبه تقریبی و پیشنهادی است و با توجه به برش،
+پرت کار، شرایط پروژه و نحوه اجرا ممکن است تغییر کند.
+</div>
+
+<div class="grid2">
+
+<div class="field">
+
+<label>طول (متر)</label>
+
+<input
+id="calcLength"
+type="number"
+step="0.01"
+placeholder="مثلاً 5"
+>
+
+</div>
+
+<div class="field">
+
+<label>عرض (متر)</label>
+
+<input
+id="calcWidth"
+type="number"
+step="0.01"
+placeholder="مثلاً 3"
+>
+
+</div>
+
+</div>
+
+<button class="btn gold" onclick="calculate()">
+محاسبه
+</button>
+
+<div
+id="calcResult"
+style="margin-top:15px;font-weight:800">
+</div>
+
+</section>
 
 </main>
 
+
 <footer>
- <div>فروشگاه سنگ ورونا شهرکرد</div>
- <div>شهرکرد، خیابان امیرکبیر غربی، روبروی آهن‌آلات سپاهان</div>
- <div style="margin-top:7px">مدیریت ولی‌الله قائدی</div>
- <div style="margin-top:7px">شنبه تا پنجشنبه، ۸ صبح تا ۸ شب</div>
- <div style="margin-top:7px">Telegram: @Fantastic_4450</div>
+
+<div>فروشگاه سنگ ورونا شهرکرد</div>
+
+<div>
+شهرکرد، خیابان امیرکبیر غربی، روبروی آهن‌آلات سپاهان
+</div>
+
+<div style="margin-top:7px">
+مدیریت ولی‌الله قائدی
+</div>
+
+<div style="margin-top:7px">
+شنبه تا پنجشنبه، ۸ صبح تا ۸ شب
+</div>
+
+<div style="margin-top:7px">
+Telegram: @Fantastic_4450
+</div>
+
 </footer>
 
+
 <div class="bottom-call">
- <a id="callLink" href="tel:09140824203">📞 تماس با مدیریت</a>
+
+<a id="callLink" href="tel:09140824203">
+📞 تماس با مدیریت
+</a>
+
 </div>
 
 
 <!-- ADMIN LOGIN -->
+
 <div id="adminModal" class="modal">
- <div class="modal-box">
 
-  <div class="modal-head">
-   <h3>🔐 ورود مدیریت</h3>
-   <button class="close" onclick="closeModal('adminModal')">×</button>
-  </div>
+<div class="modal-box">
 
-  <div class="field">
-   <label>رمز مدیریت</label>
-   <input id="adminPassword" type="password" placeholder="رمز مدیریت">
-  </div>
+<div class="modal-head">
 
-  <button class="btn gold" style="width:100%" onclick="loginAdmin()">ورود</button>
+<h3>🔐 ورود مدیریت</h3>
 
-  <div id="adminError" style="color:#d22;font-size:12px;margin-top:10px"></div>
+<button class="close"
+onclick="closeModal('adminModal')">
+×
+</button>
 
- </div>
+</div>
+
+<div class="field">
+
+<label>رمز مدیریت</label>
+
+<input
+id="adminPassword"
+type="password"
+placeholder="رمز مدیریت"
+>
+
+</div>
+
+<button
+class="btn gold"
+style="width:100%"
+onclick="loginAdmin()">
+ورود
+</button>
+
+<div
+id="adminError"
+style="color:#d22;font-size:12px;margin-top:10px">
+</div>
+
+</div>
 </div>
 
 
-<!-- PRODUCT -->
+<!-- PRODUCT MODAL -->
+
 <div id="productModal" class="modal">
- <div class="modal-box">
 
-  <div class="modal-head">
-   <h3 id="productModalTitle">محصول جدید</h3>
-   <button class="close" onclick="closeModal('productModal')">×</button>
-  </div>
+<div class="modal-box">
 
-  <input id="productId" type="hidden">
+<div class="modal-head">
 
-  <div class="field">
-   <label>نام محصول</label>
-   <input id="productName" placeholder="مثلاً تراورتن عباس‌آباد">
-  </div>
+<h3 id="productModalTitle">
+محصول جدید
+</h3>
 
-  <div class="field">
-   <label>دسته‌بندی</label>
-   <select id="productCategory"></select>
-  </div>
+<button
+class="close"
+onclick="closeModal('productModal')">
+×
+</button>
 
-  <div class="grid2">
+</div>
 
-   <div class="field">
-    <label>قیمت</label>
-    <input id="productPrice" type="number" placeholder="قیمت فعلی">
-   </div>
+<input id="productId" type="hidden">
 
-   <div class="field">
-    <label>قیمت قبل از تخفیف — اختیاری</label>
-    <input id="productOldPrice" type="number" placeholder="در صورت تخفیف">
-   </div>
 
-  </div>
+<div class="field">
 
-  <div class="field">
-   <label>توضیحات</label>
-   <textarea id="productDescription" placeholder="توضیحات و کاربرد محصول"></textarea>
-  </div>
+<label>نام محصول</label>
 
-  <img id="productPreview" class="photo-preview" alt="پیش‌نمایش">
+<input
+id="productName"
+placeholder="مثلاً تراورتن عباس‌آباد"
+>
 
-  <div class="photo-buttons">
-   <button onclick="openPhotoChooser('camera')">📷 دوربین</button>
-   <button onclick="openPhotoChooser('gallery')">🖼 گالری</button>
-  </div>
+</div>
 
-  <input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this)">
-  <input id="galleryInput" type="file" accept="image/*" style="display:none" onchange="handlePhoto(this)">
 
-  <div style="margin-top:15px">
-   <button class="btn gold" style="width:100%" onclick="saveProduct()">ذخیره محصول</button>
-  </div>
+<div class="field">
 
- </div>
+<label>دسته‌بندی</label>
+
+<select id="productCategory"></select>
+
+</div>
+
+
+<div class="grid2">
+
+<div class="field">
+
+<label>قیمت</label>
+
+<input
+id="productPrice"
+type="number"
+placeholder="قیمت فعلی"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>قیمت قبل از تخفیف — اختیاری</label>
+
+<input
+id="productOldPrice"
+type="number"
+placeholder="در صورت تخفیف"
+>
+
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label>توضیحات</label>
+
+<textarea
+id="productDescription"
+placeholder="توضیحات و کاربرد محصول">
+</textarea>
+
+</div>
+
+
+<img
+id="productPreview"
+class="photo-preview"
+alt="پیش‌نمایش"
+>
+
+
+<div class="photo-buttons">
+
+<button onclick="openPhotoChooser('camera')">
+📷 دوربین
+</button>
+
+<button onclick="openPhotoChooser('gallery')">
+🖼 گالری
+</button>
+
+</div>
+
+
+<input
+id="cameraInput"
+type="file"
+accept="image/*"
+capture="environment"
+style="display:none"
+onchange="handlePhoto(this)"
+>
+
+
+<input
+id="galleryInput"
+type="file"
+accept="image/*"
+style="display:none"
+onchange="handlePhoto(this)"
+>
+
+
+<div style="margin-top:15px">
+
+<button
+class="btn gold"
+style="width:100%"
+onclick="saveProduct()">
+ذخیره محصول
+</button>
+
+</div>
+
+</div>
 </div>
 
 
 <!-- PHOTO VIEW -->
-<div id="photoModal" class="modal" onclick="closeModal('photoModal')">
- <div style="max-width:95vw;max-height:90vh">
-  <img id="largePhoto" style="max-width:95vw;max-height:85vh;display:block;border-radius:18px;object-fit:contain">
- </div>
+
+<div
+id="photoModal"
+class="modal"
+onclick="closeModal('photoModal')">
+
+<div style="max-width:95vw;max-height:90vh">
+
+<img
+id="largePhoto"
+style="max-width:95vw;max-height:85vh;display:block;border-radius:18px;object-fit:contain"
+>
+
+</div>
+
 </div>
 
 
 <!-- SETTINGS -->
+
 <div id="settingsModal" class="modal">
- <div class="modal-box">
 
-  <div class="modal-head">
-   <h3>⚙ تنظیمات فروشگاه</h3>
-   <button class="close" onclick="closeModal('settingsModal')">×</button>
-  </div>
+<div class="modal-box">
 
-  <div class="field">
-   <label>شماره تماس مدیریت</label>
-   <input id="settingPhone" placeholder="مثلاً 0912...">
-  </div>
+<div class="modal-head">
 
-  <button class="btn gold" style="width:100%" onclick="saveSettings()">ذخیره تنظیمات</button>
+<h3>⚙ تنظیمات فروشگاه</h3>
 
- </div>
+<button
+class="close"
+onclick="closeModal('settingsModal')">
+×
+</button>
+
+</div>
+
+
+<div class="field">
+
+<label>شماره تماس مدیریت</label>
+
+<input
+id="settingPhone"
+placeholder="مثلاً 0912..."
+>
+
+</div>
+
+
+<button
+class="btn gold"
+style="width:100%"
+onclick="saveSettings()">
+ذخیره تنظیمات
+</button>
+
+</div>
+
 </div>
 
 
 <script>
-/* =========================================================
-   VERONA STONE
-   مدیریت محصولات فقط برای مدیریت
-========================================================= */
 
 const ADMIN_PASSWORD = "4450";
 
@@ -748,90 +941,61 @@ const PHONE_KEY = "verona_phone";
 
 let currentCategory = null;
 let currentPhoto = "";
-let data = JSON.parse(localStorage.getItem(PRODUCTS_KEY) || "null") || [];
+
+let data =
+JSON.parse(localStorage.getItem(PRODUCTS_KEY) || "null") || [];
 
 
 /* =========================================================
-   دسته‌بندی‌ها
-   عکس‌ها از چند منبع مختلف با fallback داخلی استفاده می‌شوند
+   دسته بندی ها
+   عکس ها مستقیماً از پوشه images خوانده می شوند
 ========================================================= */
 
 const categories = [
 
- {
-  name:"صفحه کابینت",
-  desc:"صفحه‌های سنگی لوکس برای آشپزخانه",
-  image:"https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&q=90"
- },
+{
+ name:"صفحه کابینت",
+ desc:"صفحه‌های سنگی لوکس برای آشپزخانه",
+ image:"./images/page-kabinet.jpg"
+},
 
- {
-  name:"سنگ پله",
-  desc:"سنگ پله و پیشانی با کیفیت",
-  image:"https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=90"
- },
+{
+ name:"سنگ پله",
+ desc:"سنگ پله و پیشانی با کیفیت",
+ image:"./images/pelleh.jpg"
+},
 
- {
-  name:"تراورتن",
-  desc:"سنگ‌های طبیعی مناسب نما",
-  image:"https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=90"
- },
+{
+ name:"تراورتن",
+ desc:"سنگ‌های طبیعی مناسب نما",
+ image:"./images/travertine.jpg"
+},
 
- {
-  name:"مرمریت",
-  desc:"مرمریت‌های لوکس و خاص",
-  image:"https://images.unsplash.com/photo-1600607688969-a5bfcd646154?auto=format&fit=crop&w=1200&q=90"
- },
+{
+ name:"مرمریت",
+ desc:"مرمریت‌های لوکس و خاص",
+ image:"./images/marmerit.jpg"
+},
 
- {
-  name:"سنگ فرش",
-  desc:"سنگ‌های مناسب کف و محوطه",
-  image:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=90"
- },
+{
+ name:"سنگ فرش",
+ desc:"سنگ‌های مناسب کف و محوطه",
+ image:"./images/farsh.jpg"
+},
 
- {
-  name:"کریستال و گرانیت",
-  desc:"سنگ‌های مقاوم و لوکس",
-  image:"https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=90"
- },
+{
+ name:"کریستال و گرانیت",
+ desc:"سنگ‌های مقاوم و لوکس",
+ image:"./images/crystal-granite.jpg"
+},
 
- {
-  name:"المان و زیباسازی",
-  desc:"المان‌های سنگی و زیباسازی",
-  image:"https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1200&q=90"
- }
+{
+ name:"المان و زیباسازی",
+ desc:"المان‌های سنگی و زیباسازی",
+ image:"./images/elamanzibasaazi.jpg"
+}
 
 ];
-
-
-/* =========================================================
-   fallback عکس دسته‌بندی
-   اگر عکس اصلی باز نشد، عکس دوم امتحان می‌شود
-========================================================= */
-
-const fallbackImages = {
-
- "صفحه کابینت":
- "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1000&q=80",
-
- "سنگ پله":
- "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1000&q=80",
-
- "تراورتن":
- "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80",
-
- "مرمریت":
- "https://images.unsplash.com/photo-1600607688969-a5bfcd646154?auto=format&fit=crop&w=1000&q=80",
-
- "سنگ فرش":
- "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1000&q=80",
-
- "کریستال و گرانیت":
- "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1000&q=80",
-
- "المان و زیباسازی":
- "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1000&q=80"
-
-};
 
 
 /* =========================================================
@@ -839,67 +1003,85 @@ const fallbackImages = {
 ========================================================= */
 
 function isAdmin(){
- return sessionStorage.getItem("verona_admin") === "1";
+
+return sessionStorage.getItem("verona_admin") === "1";
+
 }
+
 
 function updateAdminUI(){
 
- if(isAdmin()){
-  document.body.classList.add("adminMode");
- }else{
-  document.body.classList.remove("adminMode");
- }
+if(isAdmin()){
 
- renderProducts();
+document.body.classList.add("adminMode");
+
+}else{
+
+document.body.classList.remove("adminMode");
+
 }
+
+renderProducts();
+
+}
+
 
 function openAdminLogin(){
 
- if(isAdmin()){
-  alert("حالت مدیریت از قبل فعال است.");
-  return;
- }
+if(isAdmin()){
 
- document.getElementById("adminPassword").value="";
- document.getElementById("adminError").textContent="";
- document.getElementById("adminModal").classList.add("show");
+alert("حالت مدیریت از قبل فعال است.");
 
- setTimeout(()=>{
-  document.getElementById("adminPassword").focus();
- },100);
+return;
 
 }
+
+document.getElementById("adminPassword").value="";
+document.getElementById("adminError").textContent="";
+
+document.getElementById("adminModal").classList.add("show");
+
+setTimeout(()=>{
+
+document.getElementById("adminPassword").focus();
+
+},100);
+
+}
+
 
 function loginAdmin(){
 
- const pass = document.getElementById("adminPassword").value;
+const pass =
+document.getElementById("adminPassword").value;
 
- if(pass === ADMIN_PASSWORD){
+if(pass === ADMIN_PASSWORD){
 
-  sessionStorage.setItem("verona_admin","1");
+sessionStorage.setItem("verona_admin","1");
 
-  closeModal("adminModal");
+closeModal("adminModal");
 
-  updateAdminUI();
+updateAdminUI();
 
-  alert("ورود مدیریت با موفقیت انجام شد.");
+alert("ورود مدیریت با موفقیت انجام شد.");
 
- }else{
+}else{
 
-  document.getElementById("adminError").textContent =
-  "رمز مدیریت صحیح نیست.";
-
- }
+document.getElementById("adminError").textContent =
+"رمز مدیریت صحیح نیست.";
 
 }
 
+}
+
+
 function logoutAdmin(){
 
- sessionStorage.removeItem("verona_admin");
+sessionStorage.removeItem("verona_admin");
 
- updateAdminUI();
+updateAdminUI();
 
- alert("از حالت مدیریت خارج شدید.");
+alert("از حالت مدیریت خارج شدید.");
 
 }
 
@@ -909,7 +1091,9 @@ function logoutAdmin(){
 ========================================================= */
 
 function closeModal(id){
- document.getElementById(id).classList.remove("show");
+
+document.getElementById(id).classList.remove("show");
+
 }
 
 
@@ -919,77 +1103,60 @@ function closeModal(id){
 
 function renderCategories(){
 
- const box = document.getElementById("categoryList");
+const box =
+document.getElementById("categoryList");
 
- box.innerHTML = categories.map((c,index)=>`
+box.innerHTML = categories.map((c,index)=>`
 
-  <div class="category" onclick="openCategory(${index})">
+<div
+class="category"
+onclick="openCategory(${index})"
+>
 
-   <div class="category-image">
+<div class="category-image">
 
-    <img
-      src="${c.image}"
-      alt="${c.name}"
-      loading="eager"
-      referrerpolicy="no-referrer"
-      onerror="categoryImageError(this,'${escapeAttr(c.name)}')"
-    >
+<img
+src="${c.image}"
+alt="${c.name}"
+loading="eager"
+onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#d9d4cb,#8e8a82)'"
+>
 
-   </div>
+</div>
 
-   <div class="category-body">
-    <h3>${c.name}</h3>
-    <p>${c.desc}</p>
-   </div>
+<div class="category-body">
 
-  </div>
+<h3>${c.name}</h3>
 
- `).join("");
+<p>${c.desc}</p>
 
-}
+</div>
 
-function categoryImageError(img,name){
+</div>
 
- const fallback = fallbackImages[name];
-
- if(fallback && img.src !== fallback){
-  img.src = fallback;
-  return;
- }
-
- /* اگر هر دو منبع قطع بودند، حداقل تصویر زیبای سنگی داخلی نمایش داده شود */
- img.style.display="none";
- img.parentElement.style.background=
- "linear-gradient(135deg,#d9d4cb,#8e8a82)";
+`).join("");
 
 }
 
-function escapeAttr(text){
-
- return String(text)
- .replace(/&/g,"&amp;")
- .replace(/"/g,"&quot;")
- .replace(/'/g,"&#39;")
- .replace(/</g,"&lt;")
- .replace(/>/g,"&gt;");
-
-}
 
 function openCategory(index){
 
- currentCategory = categories[index].name;
+currentCategory =
+categories[index].name;
 
- document.getElementById("productsSection").style.display="block";
+document.getElementById("productsSection")
+.style.display="block";
 
- document.getElementById("categoryTitle").textContent =
- currentCategory;
+document.getElementById("categoryTitle")
+.textContent=currentCategory;
 
- renderProducts();
+renderProducts();
 
- document.getElementById("productsSection").scrollIntoView({
-  behavior:"smooth",
-  block:"start"
- });
+document.getElementById("productsSection")
+.scrollIntoView({
+behavior:"smooth",
+block:"start"
+});
 
 }
 
@@ -1000,139 +1167,256 @@ function openCategory(index){
 
 function renderProducts(){
 
- const box = document.getElementById("productList");
+const box =
+document.getElementById("productList");
 
- let items = data.filter(x =>
-  !currentCategory || x.category === currentCategory
- );
+let items =
+data.filter(x =>
+!currentCategory ||
+x.category === currentCategory
+);
 
- const search =
- document.getElementById("search").value.trim().toLowerCase();
 
- if(search){
+const search =
+document.getElementById("search")
+.value.trim()
+.toLowerCase();
 
-  items = items.filter(x =>
-   String(x.name||"").toLowerCase().includes(search) ||
-   String(x.description||"").toLowerCase().includes(search) ||
-   String(x.category||"").toLowerCase().includes(search)
-  );
 
- }
+if(search){
 
- const sort = document.getElementById("sort").value;
+items=items.filter(x=>
 
- if(sort === "cheap"){
-  items.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
- }
+String(x.name||"")
+.toLowerCase()
+.includes(search)
 
- if(sort === "expensive"){
-  items.sort((a,b)=>(Number(b.price)||0)-(Number(a.price)||0));
- }
+||
 
- if(sort === "new"){
-  items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
- }
+String(x.description||"")
+.toLowerCase()
+.includes(search)
 
- if(!items.length){
+||
 
-  box.innerHTML=`
-   <div class="empty" style="grid-column:1/-1">
-    هنوز محصولی در این دسته ثبت نشده است.
-    ${isAdmin() ? "<br><br>از گزینه «＋ افزودن» محصول جدید اضافه کنید." : ""}
-   </div>
-  `;
+String(x.category||"")
+.toLowerCase()
+.includes(search)
 
-  return;
- }
-
- box.innerHTML = items.map(x=>{
-
-  const price = Number(x.price)||0;
-  const old = Number(x.oldPrice)||0;
-
-  return `
-
-   <article class="product">
-
-    <div class="product-image"
-         onclick="zoomPhoto('${escapeAttr(x.image||"")}')">
-
-      ${
-       x.image
-       ?
-       `<img src="${x.image}" alt="${escapeAttr(x.name)}">`
-       :
-       `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#999">بدون عکس</div>`
-      }
-
-    </div>
-
-    <div class="product-body">
-
-     <h3>${escapeHtml(x.name)}</h3>
-
-     <div class="product-desc">
-      ${escapeHtml(x.description||"")}
-     </div>
-
-     <div class="price">
-
-      ${
-       old > price
-       ?
-       `<span class="old-price">${formatPrice(old)}</span>`
-       :
-       ""
-      }
-
-      ${formatPrice(price)}
-
-     </div>
-
-     ${
-      isAdmin()
-      ?
-      `
-       <div class="actions">
-        <button class="btn soft" onclick="openProduct(${x.id})">
-         ✏ ویرایش
-        </button>
-
-        <button class="btn danger" onclick="removeProduct(${x.id})">
-         حذف
-        </button>
-       </div>
-      `
-      :
-      ""
-     }
-
-    </div>
-
-   </article>
-
-  `;
-
- }).join("");
+);
 
 }
+
+
+const sort =
+document.getElementById("sort").value;
+
+
+if(sort==="cheap"){
+
+items.sort(
+(a,b)=>
+(Number(a.price)||0) -
+(Number(b.price)||0)
+);
+
+}
+
+
+if(sort==="expensive"){
+
+items.sort(
+(a,b)=>
+(Number(b.price)||0) -
+(Number(a.price)||0)
+);
+
+}
+
+
+if(sort==="new"){
+
+items.sort(
+(a,b)=>
+(b.createdAt||0) -
+(a.createdAt||0)
+);
+
+}
+
+
+if(!items.length){
+
+box.innerHTML=`
+
+<div
+class="empty"
+style="grid-column:1/-1">
+
+هنوز محصولی در این دسته ثبت نشده است.
+
+${isAdmin()
+?
+"<br><br>از گزینه «＋ افزودن» محصول جدید اضافه کنید."
+:
+""}
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+box.innerHTML =
+items.map(x=>{
+
+const price =
+Number(x.price)||0;
+
+const old =
+Number(x.oldPrice)||0;
+
+
+return `
+
+<article class="product">
+
+<div
+class="product-image"
+onclick="zoomPhoto('${escapeAttr(x.image||"")}')">
+
+${
+x.image
+
+?
+
+`<img
+src="${x.image}"
+alt="${escapeAttr(x.name)}"
+onerror="this.style.display='none'"
+>`
+
+:
+
+`<div
+style="height:100%;display:flex;align-items:center;justify-content:center;color:#999">
+بدون عکس
+</div>`
+
+}
+
+</div>
+
+
+<div class="product-body">
+
+<h3>
+${escapeHtml(x.name)}
+</h3>
+
+
+<div class="product-desc">
+${escapeHtml(x.description||"")}
+</div>
+
+
+<div class="price">
+
+${
+old>price
+
+?
+
+`<span class="old-price">
+${formatPrice(old)}
+</span>`
+
+:
+
+""
+
+}
+
+${formatPrice(price)}
+
+</div>
+
+
+${
+isAdmin()
+
+?
+
+`
+
+<div class="actions">
+
+<button
+class="btn soft"
+onclick="openProduct(${x.id})">
+✏ ویرایش
+</button>
+
+<button
+class="btn danger"
+onclick="removeProduct(${x.id})">
+حذف
+</button>
+
+</div>
+
+`
+
+:
+
+""
+
+}
+
+</div>
+
+</article>
+
+`;
+
+}).join("");
+
+}
+
 
 function formatPrice(n){
 
- if(!n) return "تماس بگیرید";
+if(!n)return"تماس بگیرید";
 
- return new Intl.NumberFormat("fa-IR").format(n)+" تومان";
+return new Intl.NumberFormat("fa-IR")
+.format(n)+" تومان";
 
 }
 
+
 function escapeHtml(text){
 
- return String(text??"")
- .replace(/&/g,"&amp;")
- .replace(/</g,"&lt;")
- .replace(/>/g,"&gt;")
- .replace(/"/g,"&quot;")
- .replace(/'/g,"&#039;");
+return String(text??"")
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
+
+}
+
+
+function escapeAttr(text){
+
+return String(text??"")
+.replace(/&/g,"&amp;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#39;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;");
 
 }
 
@@ -1143,161 +1427,242 @@ function escapeHtml(text){
 
 function openProduct(id=null){
 
- if(!isAdmin()){
+if(!isAdmin()){
 
-  openAdminLogin();
+openAdminLogin();
 
-  return;
- }
-
- currentPhoto="";
-
- const select = document.getElementById("productCategory");
-
- select.innerHTML = categories.map(c=>
-  `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`
- ).join("");
-
- document.getElementById("productPreview").removeAttribute("src");
-
- document.getElementById("productId").value="";
- document.getElementById("productName").value="";
- document.getElementById("productPrice").value="";
- document.getElementById("productOldPrice").value="";
- document.getElementById("productDescription").value="";
-
- document.getElementById("productModalTitle").textContent =
- "محصول جدید";
-
- if(id){
-
-  const item = data.find(x=>x.id===id);
-
-  if(!item) return;
-
-  document.getElementById("productModalTitle").textContent =
-  "ویرایش محصول";
-
-  document.getElementById("productId").value=item.id;
-  document.getElementById("productName").value=item.name||"";
-  document.getElementById("productPrice").value=item.price||"";
-  document.getElementById("productOldPrice").value=item.oldPrice||"";
-  document.getElementById("productDescription").value=item.description||"";
-
-  select.value=item.category||categories[0].name;
-
-  currentPhoto=item.image||"";
-
-  if(currentPhoto){
-   document.getElementById("productPreview").src=currentPhoto;
-  }
-
- }
-
- document.getElementById("productModal").classList.add("show");
+return;
 
 }
+
+
+currentPhoto="";
+
+
+const select =
+document.getElementById("productCategory");
+
+
+select.innerHTML =
+categories.map(c=>
+
+`<option value="${escapeHtml(c.name)}">
+${escapeHtml(c.name)}
+</option>`
+
+).join("");
+
+
+document.getElementById("productPreview")
+.removeAttribute("src");
+
+
+document.getElementById("productId").value="";
+document.getElementById("productName").value="";
+document.getElementById("productPrice").value="";
+document.getElementById("productOldPrice").value="";
+document.getElementById("productDescription").value="";
+
+
+document.getElementById("productModalTitle")
+.textContent="محصول جدید";
+
+
+if(id){
+
+const item =
+data.find(x=>x.id===id);
+
+if(!item)return;
+
+
+document.getElementById("productModalTitle")
+.textContent="ویرایش محصول";
+
+
+document.getElementById("productId").value=item.id;
+
+document.getElementById("productName").value=
+item.name||"";
+
+document.getElementById("productPrice").value=
+item.price||"";
+
+document.getElementById("productOldPrice").value=
+item.oldPrice||"";
+
+document.getElementById("productDescription").value=
+item.description||"";
+
+
+select.value =
+item.category||categories[0].name;
+
+
+currentPhoto =
+item.image||"";
+
+
+if(currentPhoto){
+
+document.getElementById("productPreview")
+.src=currentPhoto;
+
+}
+
+}
+
+
+document.getElementById("productModal")
+.classList.add("show");
+
+}
+
 
 function saveProduct(){
 
- if(!isAdmin()){
+if(!isAdmin()){
 
-  openAdminLogin();
+openAdminLogin();
 
-  return;
- }
-
- const id =
- Number(document.getElementById("productId").value)||null;
-
- const name =
- document.getElementById("productName").value.trim();
-
- const category =
- document.getElementById("productCategory").value;
-
- const price =
- Number(document.getElementById("productPrice").value)||0;
-
- const oldPrice =
- Number(document.getElementById("productOldPrice").value)||0;
-
- const description =
- document.getElementById("productDescription").value.trim();
-
- if(!name){
-
-  alert("نام محصول را وارد کنید.");
-
-  return;
- }
-
- const item = {
-
-  id:id || Date.now(),
-
-  name,
-
-  category,
-
-  price,
-
-  oldPrice,
-
-  description,
-
-  image:currentPhoto || "",
-
-  createdAt:id
-   ? (data.find(x=>x.id===id)?.createdAt || Date.now())
-   : Date.now()
-
- };
-
- if(id){
-
-  const index=data.findIndex(x=>x.id===id);
-
-  if(index>=0){
-   data[index]=item;
-  }
-
- }else{
-
-  data.push(item);
-
- }
-
- localStorage.setItem(PRODUCTS_KEY,JSON.stringify(data));
-
- closeModal("productModal");
-
- renderProducts();
-
- alert(id ? "محصول ویرایش شد." : "محصول اضافه شد.");
+return;
 
 }
 
+
+const id =
+Number(document.getElementById("productId").value)||null;
+
+
+const name =
+document.getElementById("productName")
+.value.trim();
+
+
+const category =
+document.getElementById("productCategory")
+.value;
+
+
+const price =
+Number(document.getElementById("productPrice").value)||0;
+
+
+const oldPrice =
+Number(document.getElementById("productOldPrice").value)||0;
+
+
+const description =
+document.getElementById("productDescription")
+.value.trim();
+
+
+if(!name){
+
+alert("نام محصول را وارد کنید.");
+
+return;
+
+}
+
+
+const item={
+
+id:id||Date.now(),
+
+name:name,
+
+category:category,
+
+price:price,
+
+oldPrice:oldPrice,
+
+description:description,
+
+image:currentPhoto||"",
+
+createdAt:id
+?
+(data.find(x=>x.id===id)?.createdAt||Date.now())
+:
+Date.now()
+
+};
+
+
+if(id){
+
+const index =
+data.findIndex(x=>x.id===id);
+
+if(index>=0){
+
+data[index]=item;
+
+}
+
+}else{
+
+data.push(item);
+
+}
+
+
+localStorage.setItem(
+PRODUCTS_KEY,
+JSON.stringify(data)
+);
+
+
+closeModal("productModal");
+
+renderProducts();
+
+alert(
+id
+?
+"محصول ویرایش شد."
+:
+"محصول اضافه شد."
+);
+
+}
+
+
 function removeProduct(id){
 
- if(!isAdmin()){
+if(!isAdmin()){
 
-  openAdminLogin();
+openAdminLogin();
 
-  return;
- }
+return;
 
- const item=data.find(x=>x.id===id);
+}
 
- if(!item) return;
 
- if(!confirm(`محصول «${item.name}» حذف شود؟`)) return;
+const item =
+data.find(x=>x.id===id);
 
- data=data.filter(x=>x.id!==id);
+if(!item)return;
 
- localStorage.setItem(PRODUCTS_KEY,JSON.stringify(data));
 
- renderProducts();
+if(!confirm(
+`محصول «${item.name}» حذف شود؟`
+))return;
+
+
+data =
+data.filter(x=>x.id!==id);
+
+
+localStorage.setItem(
+PRODUCTS_KEY,
+JSON.stringify(data)
+);
+
+
+renderProducts();
 
 }
 
@@ -1308,61 +1673,81 @@ function removeProduct(id){
 
 function openPhotoChooser(type){
 
- if(!isAdmin()){
+if(!isAdmin()){
 
-  openAdminLogin();
+openAdminLogin();
 
-  return;
- }
-
- if(type==="camera"){
-
-  document.getElementById("cameraInput").value="";
-  document.getElementById("cameraInput").click();
-
- }else{
-
-  document.getElementById("galleryInput").value="";
-  document.getElementById("galleryInput").click();
-
- }
+return;
 
 }
+
+
+if(type==="camera"){
+
+document.getElementById("cameraInput")
+.value="";
+
+document.getElementById("cameraInput")
+.click();
+
+}else{
+
+document.getElementById("galleryInput")
+.value="";
+
+document.getElementById("galleryInput")
+.click();
+
+}
+
+}
+
 
 function handlePhoto(input){
 
- if(!input.files || !input.files[0]) return;
+if(!input.files || !input.files[0])
+return;
 
- const file=input.files[0];
 
- if(!file.type.startsWith("image/")){
+const file=input.files[0];
 
-  alert("لطفاً یک فایل عکس انتخاب کنید.");
 
-  return;
- }
+if(!file.type.startsWith("image/")){
 
- const reader=new FileReader();
+alert("لطفاً یک فایل عکس انتخاب کنید.");
 
- reader.onload=function(e){
-
-  currentPhoto=e.target.result;
-
-  document.getElementById("productPreview").src=currentPhoto;
-
- };
-
- reader.readAsDataURL(file);
+return;
 
 }
 
+
+const reader=new FileReader();
+
+
+reader.onload=function(e){
+
+currentPhoto=e.target.result;
+
+document.getElementById("productPreview")
+.src=currentPhoto;
+
+};
+
+
+reader.readAsDataURL(file);
+
+}
+
+
 function zoomPhoto(src){
 
- if(!src) return;
+if(!src)return;
 
- document.getElementById("largePhoto").src=src;
+document.getElementById("largePhoto")
+.src=src;
 
- document.getElementById("photoModal").classList.add("show");
+document.getElementById("photoModal")
+.classList.add("show");
 
 }
 
@@ -1373,39 +1758,53 @@ function zoomPhoto(src){
 
 function openSettings(){
 
- if(!isAdmin()){
+if(!isAdmin()){
 
-  openAdminLogin();
+openAdminLogin();
 
-  return;
- }
-
- document.getElementById("settingPhone").value =
- localStorage.getItem(PHONE_KEY) || "09140824203";
-
- document.getElementById("settingsModal").classList.add("show");
+return;
 
 }
 
+
+document.getElementById("settingPhone")
+.value =
+localStorage.getItem(PHONE_KEY) ||
+"09140824203";
+
+
+document.getElementById("settingsModal")
+.classList.add("show");
+
+}
+
+
 function saveSettings(){
 
- if(!isAdmin()) return;
+if(!isAdmin())return;
 
- const phone =
- document.getElementById("settingPhone").value.trim();
 
- if(phone){
+const phone =
+document.getElementById("settingPhone")
+.value.trim();
 
-  localStorage.setItem(PHONE_KEY,phone);
 
-  document.getElementById("callLink").href =
-  "tel:"+phone;
+if(phone){
 
- }
+localStorage.setItem(
+PHONE_KEY,
+phone
+);
 
- closeModal("settingsModal");
+document.getElementById("callLink")
+.href="tel:"+phone;
 
- alert("تنظیمات ذخیره شد.");
+}
+
+
+closeModal("settingsModal");
+
+alert("تنظیمات ذخیره شد.");
 
 }
 
@@ -1416,30 +1815,48 @@ function saveSettings(){
 
 function calculate(){
 
- const length =
- Number(document.getElementById("calcLength").value)||0;
+const length =
+Number(
+document.getElementById("calcLength").value
+)||0;
 
- const width =
- Number(document.getElementById("calcWidth").value)||0;
 
- if(length<=0 || width<=0){
+const width =
+Number(
+document.getElementById("calcWidth").value
+)||0;
 
-  document.getElementById("calcResult").textContent =
-  "لطفاً طول و عرض را وارد کنید.";
 
-  return;
- }
+if(length<=0 || width<=0){
 
- const area=length*width;
+document.getElementById("calcResult")
+.textContent=
+"لطفاً طول و عرض را وارد کنید.";
 
- const waste=area*1.10;
+return;
 
- document.getElementById("calcResult").innerHTML =
- `
- مساحت تقریبی: ${area.toFixed(2)} مترمربع
- <br>
- با حدود ۱۰٪ پرت پیشنهادی: ${waste.toFixed(2)} مترمربع
- `;
+}
+
+
+const area=length*width;
+
+const waste=area*1.10;
+
+
+document.getElementById("calcResult")
+.innerHTML=`
+
+مساحت تقریبی:
+${area.toFixed(2)}
+مترمربع
+
+<br>
+
+با حدود ۱۰٪ پرت پیشنهادی:
+${waste.toFixed(2)}
+مترمربع
+
+`;
 
 }
 
@@ -1450,21 +1867,25 @@ function calculate(){
 
 function init(){
 
- renderCategories();
+renderCategories();
 
- const phone =
- localStorage.getItem(PHONE_KEY);
 
- if(phone){
+const phone =
+localStorage.getItem(PHONE_KEY);
 
-  document.getElementById("callLink").href =
-  "tel:"+phone;
 
- }
+if(phone){
 
- updateAdminUI();
+document.getElementById("callLink")
+.href="tel:"+phone;
 
 }
+
+
+updateAdminUI();
+
+}
+
 
 init();
 
@@ -1475,12 +1896,13 @@ init();
 
 if("serviceWorker" in navigator){
 
- window.addEventListener("load",()=>{
+window.addEventListener("load",()=>{
 
-  navigator.serviceWorker.register("./sw.js")
-  .catch(()=>{});
+navigator.serviceWorker
+.register("./sw.js")
+.catch(()=>{});
 
- });
+});
 
 }
 
