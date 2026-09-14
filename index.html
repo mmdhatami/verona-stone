@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#173f36">
+
 <title>فروشگاه سنگ ورونا</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,6 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
+
 :root{
 --green:#173f36;
 --green2:#24594b;
@@ -23,7 +25,9 @@
 --danger:#a63d3d;
 }
 
-*{box-sizing:border-box}
+*{
+box-sizing:border-box;
+}
 
 html{
 scroll-behavior:smooth;
@@ -36,14 +40,22 @@ color:var(--text);
 font-family:Vazirmatn,Arial,sans-serif;
 }
 
-button,input,textarea,select{font:inherit}
-button{cursor:pointer}
+button,
+input,
+textarea,
+select{
+font:inherit;
+}
+
+button{
+cursor:pointer;
+}
 
 .hidden{
 display:none!important;
 }
 
-/* HEADER */
+/* ================= HEADER ================= */
 
 header{
 background:#fff;
@@ -82,6 +94,7 @@ font-weight:700;
 display:flex;
 gap:8px;
 justify-content:center;
+align-items:center;
 flex-wrap:wrap;
 }
 
@@ -108,7 +121,11 @@ color:var(--green);
 background:var(--danger);
 }
 
-/* MAIN */
+.btn:active{
+transform:scale(.98);
+}
+
+/* ================= MAIN ================= */
 
 .wrap{
 max-width:1150px;
@@ -124,6 +141,10 @@ border-radius:16px;
 background:#fff;
 outline:none;
 margin-bottom:18px;
+}
+
+.search:focus{
+border-color:var(--gold);
 }
 
 .grid{
@@ -240,34 +261,7 @@ color:#65736e;
 line-height:1.8;
 }
 
-.form{
-display:grid;
-gap:10px;
-}
-
-.form input,
-.form textarea,
-.form select{
-width:100%;
-border:1px solid #d9cdb5;
-border-radius:12px;
-padding:11px;
-background:#fff;
-outline:none;
-}
-
-.form textarea{
-min-height:90px;
-resize:vertical;
-}
-
-.row{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-}
-
-/* MODAL */
+/* ================= MODAL ================= */
 
 .modal{
 position:fixed;
@@ -283,9 +277,9 @@ padding:15px;
 .modalbox{
 background:#fff;
 border-radius:22px;
-max-width:620px;
+max-width:650px;
 width:100%;
-max-height:90vh;
+max-height:92vh;
 overflow:auto;
 padding:20px;
 }
@@ -301,40 +295,116 @@ margin-bottom:14px;
 .modalhead h3{
 margin:0;
 color:var(--green);
+font-family:Lalezar;
+font-size:25px;
+}
+
+.form{
+display:grid;
+gap:12px;
+}
+
+.form input,
+.form textarea,
+.form select{
+width:100%;
+border:1px solid #d9cdb5;
+border-radius:13px;
+padding:12px;
+background:#fff;
+outline:none;
+}
+
+.form textarea{
+min-height:100px;
+resize:vertical;
+}
+
+.form input:focus,
+.form textarea:focus,
+.form select:focus{
+border-color:var(--gold);
+}
+
+.row{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
 }
 
 .notice{
 background:#f7f0df;
 border-right:4px solid var(--gold);
-padding:12px;
+padding:13px;
 border-radius:10px;
 font-size:13px;
-line-height:1.8;
+line-height:1.9;
 }
 
-#toast{
-position:fixed;
-bottom:20px;
-right:20px;
-background:var(--green);
-color:#fff;
-padding:12px 16px;
-border-radius:12px;
-z-index:200;
-display:none;
+/* ================= CALCULATOR ================= */
+
+.calculator-box{
+max-width:650px;
+margin:auto;
 }
 
-/* FOOTER */
+.calc-title{
+font-family:Lalezar;
+font-size:28px;
+color:var(--green);
+margin:0 0 6px;
+}
 
-.footer{
-text-align:center;
-color:#777;
-margin-top:35px;
+.calc-subtitle{
 font-size:13px;
+color:var(--muted);
+line-height:1.9;
+margin-bottom:18px;
+}
+
+.calc-label{
+font-weight:800;
+color:var(--green);
+font-size:14px;
+margin-bottom:5px;
+display:block;
+}
+
+.calc-input{
+width:100%;
+padding:15px;
+border:1px solid #d9cdb5;
+border-radius:14px;
+background:#fff;
+font-size:17px;
+outline:none;
+}
+
+.calc-input:focus{
+border-color:var(--gold);
+box-shadow:0 0 0 3px #c49a5520;
+}
+
+.calc-field{
+margin-bottom:13px;
+}
+
+.calc-result{
+margin-top:16px;
+padding:17px;
+border-radius:15px;
+background:#eef5f1;
+border:1px solid #d2e2da;
+color:var(--green);
+font-size:15px;
 line-height:2;
 }
 
-/* صفحه خوش آمدگویی */
+.calc-result strong{
+font-size:21px;
+}
+
+/* ================= WELCOME ================= */
 
 .welcome-screen{
 position:fixed;
@@ -378,14 +448,15 @@ margin:0 auto 25px;
 width:100%;
 border:0;
 border-radius:15px;
-padding:14px 20px;
+padding:15px 20px;
 background:var(--green);
 color:#fff;
 font-weight:800;
-font-size:16px;
+font-size:17px;
+box-shadow:0 8px 20px #173f3630;
 }
 
-/* صفحه دسته بندی */
+/* ================= PAGE ================= */
 
 .category-page-head{
 display:flex;
@@ -411,7 +482,50 @@ color:var(--green);
 font-weight:700;
 }
 
-/* موبایل */
+/* ================= ADMIN ================= */
+
+.admin-item{
+display:flex;
+align-items:center;
+gap:10px;
+padding:12px;
+background:#fff;
+border:1px solid #eadfc9;
+border-radius:13px;
+margin-bottom:9px;
+}
+
+.admin-item-name{
+flex:1;
+font-weight:700;
+}
+
+/* ================= FOOTER ================= */
+
+.footer{
+text-align:center;
+color:#777;
+margin-top:35px;
+font-size:13px;
+line-height:2;
+}
+
+/* ================= TOAST ================= */
+
+#toast{
+position:fixed;
+bottom:20px;
+right:20px;
+background:var(--green);
+color:#fff;
+padding:12px 16px;
+border-radius:12px;
+z-index:200;
+display:none;
+box-shadow:0 8px 25px #0003;
+}
+
+/* ================= MOBILE ================= */
 
 @media(max-width:600px){
 
@@ -483,20 +597,6 @@ padding:6px 7px;
 font-size:11px;
 }
 
-.section{
-margin-top:17px;
-}
-
-.section h2{
-font-size:22px;
-margin-bottom:8px;
-}
-
-.panel{
-padding:10px;
-border-radius:15px;
-}
-
 .products{
 grid-template-columns:repeat(2,minmax(0,1fr));
 gap:9px;
@@ -534,10 +634,6 @@ font-size:11px;
 line-height:1.6;
 }
 
-.category-page-head{
-align-items:center;
-}
-
 .page-title{
 font-size:23px;
 }
@@ -554,7 +650,7 @@ padding:8px;
 .modalbox{
 width:100%;
 max-width:none;
-max-height:94vh;
+max-height:95vh;
 border-radius:17px;
 padding:13px;
 }
@@ -587,15 +683,68 @@ font-size:11px;
 grid-template-columns:1fr;
 }
 
+.calc-title{
+font-size:24px;
 }
+
+.calc-input{
+padding:14px;
+font-size:16px;
+}
+
+.calc-result{
+font-size:14px;
+}
+
+}
+
+/* ================= EXTRA SMALL ================= */
+
+@media(max-width:380px){
+
+.grid{
+gap:7px;
+}
+
+.cat img{
+height:92px;
+}
+
+.catbody{
+padding:7px;
+}
+
+.cat h3{
+font-size:13px;
+}
+
+.products{
+gap:7px;
+}
+
+.product img{
+height:125px;
+}
+
+.pbody{
+padding:7px;
+}
+
+}
+
 </style>
 </head>
 
+
 <body>
 
-<!-- صفحه خوش آمدگویی -->
 
-<div id="welcomeScreen" class="welcome-screen">
+<!-- ================= WELCOME ================= -->
+
+<div
+id="welcomeScreen"
+class="welcome-screen"
+>
 
 <div class="welcome-card">
 
@@ -618,6 +767,8 @@ onclick="openCatalog()"
 
 </div>
 
+
+<!-- ================= HEADER ================= -->
 
 <header>
 
@@ -655,19 +806,10 @@ onclick="openContact()"
 </button>
 
 <button
-id="adminBtn"
 class="btn gold"
 onclick="openLogin()"
 >
 🔐 مدیریت
-</button>
-
-<button
-id="catManagerBtn"
-class="btn light hidden"
-onclick="openCategoryManager()"
->
-📂 مدیریت دسته‌ها
 </button>
 
 </div>
@@ -677,9 +819,12 @@ onclick="openCategoryManager()"
 </header>
 
 
+<!-- ================= MAIN ================= -->
+
 <main class="wrap">
 
-<!-- صفحه اصلی -->
+
+<!-- صفحه خانه -->
 
 <div id="homePage">
 
@@ -690,21 +835,22 @@ placeholder="🔎 جستجو در دسته‌بندی و محصولات..."
 oninput="searchHome()"
 >
 
-<div class="section">
 
-<h2>
-کاتالوگ فروشگاه
-</h2>
+<div class="section">
 
 <div class="panel">
 
+<h2 style="margin-top:0">
+کاتالوگ فروشگاه
+</h2>
+
 <div class="notice">
-برای مشاهده محصولات، ابتدا دسته‌بندی مورد نظر خود را انتخاب کنید.
+برای مشاهده محصولات و دسته‌بندی‌های فروشگاه ورونا، وارد کاتالوگ شوید.
 </div>
 
 <div
 class="actions"
-style="margin-top:12px"
+style="margin-top:13px"
 >
 
 <button
@@ -720,40 +866,15 @@ onclick="openCategories()"
 
 </div>
 
-<div class="section">
-
-<h2>
-محاسبه سریع
-</h2>
-
-<div class="panel">
-
-<div class="notice">
-نتیجه محاسبه تقریبی و پیشنهادی است و با توجه به برش، پرت و شرایط پروژه ممکن است تغییر کند.
-</div>
-
-<div
-class="actions"
-style="margin-top:12px"
->
-
-<button
-class="btn gold"
-onclick="openCalculator()"
->
-شروع محاسبه
-</button>
-
-</div>
-
-</div>
-
-</div>
 
 <div class="footer">
+
 مدیریت: ولی‌الله قائدی<br>
+
 شهرکرد، خیابان امیرکبیر غربی، روبروی آهن‌آلات سپاهان<br>
+
 شنبه تا پنجشنبه، ۸ صبح تا ۸ شب
+
 </div>
 
 </div>
@@ -781,12 +902,14 @@ onclick="backHome()"
 
 </div>
 
+
 <input
 id="categorySearch"
 class="search"
 placeholder="🔎 جستجو در دسته‌بندی‌ها..."
 oninput="renderCategoriesPage()"
 >
+
 
 <div
 id="categories"
@@ -803,8 +926,11 @@ id="categoryProducts"
 class="hidden"
 ></div>
 
+
 </main>
 
+
+<!-- ================= MODAL ================= -->
 
 <div
 id="modal"
@@ -822,6 +948,8 @@ class="modalbox"
 
 <div id="toast"></div>
 
+
+<!-- عکس -->
 
 <input
 id="camera"
@@ -843,9 +971,14 @@ onchange="picked(this)"
 
 <script>
 
+
+/* ================= DATA ================= */
+
 const CATEGORIES_KEY="verona_categories";
 const PRODUCTS_KEY="verona_products";
 const PHONE_KEY="verona_phone";
+
+const ADMIN_PASSWORD="4450";
 
 
 const defaultCategories=[
@@ -912,7 +1045,7 @@ let editingCategory=null;
 let selectedCategory="";
 
 
-/* ذخیره */
+/* ================= SAVE ================= */
 
 function save(){
 
@@ -929,7 +1062,7 @@ JSON.stringify(products)
 }
 
 
-/* امن کردن متن */
+/* ================= ESC ================= */
 
 function esc(s){
 
@@ -947,14 +1080,15 @@ m=>({
 }
 
 
-/* پیام */
+/* ================= TOAST ================= */
 
 function showToast(t){
 
-let x=
+const x=
 document.getElementById("toast");
 
 x.textContent=t;
+
 x.style.display="block";
 
 setTimeout(()=>{
@@ -964,7 +1098,7 @@ x.style.display="none";
 }
 
 
-/* مودال */
+/* ================= MODAL ================= */
 
 function openModal(html){
 
@@ -986,7 +1120,7 @@ document
 }
 
 
-/* تصویر */
+/* ================= IMAGE ================= */
 
 function imgSrc(p){
 
@@ -1002,7 +1136,7 @@ encodeURIComponent(
 }
 
 
-/* خوش آمدگویی */
+/* ================= WELCOME ================= */
 
 function openCatalog(){
 
@@ -1010,41 +1144,14 @@ document
 .getElementById("welcomeScreen")
 .classList.add("hidden");
 
-window.scrollTo({
-top:0,
-behavior:"instant"
-});
+/* مستقیم ورود به دسته بندی ها */
+
+openCategories();
 
 }
 
 
-/* باز کردن دسته بندی */
-
-function openCategories(){
-
-document
-.getElementById("homePage")
-.classList.add("hidden");
-
-document
-.getElementById("categoryProducts")
-.classList.add("hidden");
-
-document
-.getElementById("categoriesPage")
-.classList.remove("hidden");
-
-renderCategoriesPage();
-
-window.scrollTo({
-top:0,
-behavior:"smooth"
-});
-
-}
-
-
-/* برگشت به خانه */
+/* ================= HOME ================= */
 
 function backHome(){
 
@@ -1070,32 +1177,31 @@ behavior:"smooth"
 }
 
 
-/* جستجوی صفحه اصلی */
+/* ================= CATEGORIES ================= */
 
-function searchHome(){
-
-const q=
-document
-.getElementById("search")
-.value
-.trim();
-
-if(q){
-
-openCategories();
+function openCategories(){
 
 document
-.getElementById("categorySearch")
-.value=q;
+.getElementById("homePage")
+.classList.add("hidden");
+
+document
+.getElementById("categoryProducts")
+.classList.add("hidden");
+
+document
+.getElementById("categoriesPage")
+.classList.remove("hidden");
 
 renderCategoriesPage();
 
-}
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
 
 }
 
-
-/* نمایش دسته بندی ها */
 
 function renderCategoriesPage(){
 
@@ -1107,18 +1213,16 @@ document
 .toLowerCase();
 
 
-const cbox=
+const box=
 document.getElementById("categories");
 
-cbox.innerHTML="";
+box.innerHTML="";
 
 
 const filtered=
 categories.filter(c=>
 !q ||
-c.name
-.toLowerCase()
-.includes(q)
+c.name.toLowerCase().includes(q)
 );
 
 
@@ -1130,7 +1234,7 @@ p=>p.category===c.name
 ).length;
 
 
-cbox.innerHTML+=`
+box.innerHTML+=`
 
 <div class="cat">
 
@@ -1151,6 +1255,7 @@ style="font-size:12px;color:#788"
 ${count} محصول
 </div>
 
+
 <div class="mini">
 
 <button
@@ -1158,26 +1263,6 @@ onclick="showCategory('${encodeURIComponent(c.name)}')"
 >
 مشاهده محصولات
 </button>
-
-${
-admin
-?
-`
-<button
-onclick="editCategory('${encodeURIComponent(c.name)}')"
->
-ویرایش
-</button>
-
-<button
-onclick="deleteCategory('${encodeURIComponent(c.name)}')"
->
-حذف
-</button>
-`
-:
-""
-}
 
 </div>
 
@@ -1189,9 +1274,10 @@ onclick="deleteCategory('${encodeURIComponent(c.name)}')"
 
 });
 
+
 if(!filtered.length){
 
-cbox.innerHTML=`
+box.innerHTML=`
 
 <div class="notice">
 دسته‌ای با این نام پیدا نشد.
@@ -1201,12 +1287,10 @@ cbox.innerHTML=`
 
 }
 
-updateAdminButtons();
-
 }
 
 
-/* نمایش محصولات یک دسته */
+/* ================= CATEGORY PRODUCTS ================= */
 
 function showCategory(name){
 
@@ -1225,6 +1309,7 @@ document
 document
 .getElementById("categoriesPage")
 .classList.add("hidden");
+
 
 const box=
 document.getElementById("categoryProducts");
@@ -1263,29 +1348,6 @@ onclick="openCategories()"
 
 <div class="panel">
 
-<div
-class="actions"
-style="justify-content:flex-start;margin-bottom:12px"
->
-
-${
-admin
-?
-`
-<button
-class="btn gold"
-onclick="openProductForm()"
->
-➕ افزودن محصول
-</button>
-`
-:
-""
-}
-
-</div>
-
-
 <div class="products">
 
 ${
@@ -1302,6 +1364,44 @@ list.map(productCard).join("")
 
 `;
 
+
+/*
+اگر مدیریت وارد شده باشد،
+دکمه های ویرایش و افزودن فقط اینجا دیده می شوند.
+*/
+
+if(admin){
+
+const panel=
+box.querySelector(".panel");
+
+const controls=document.createElement("div");
+
+controls.className="actions";
+
+controls.style.marginBottom="12px";
+
+controls.style.justifyContent="flex-start";
+
+controls.innerHTML=`
+
+<button
+class="btn gold"
+onclick="openProductForm()"
+>
+➕ افزودن محصول
+</button>
+
+`;
+
+panel.insertBefore(
+controls,
+panel.firstChild
+);
+
+}
+
+
 window.scrollTo({
 top:0,
 behavior:"smooth"
@@ -1310,7 +1410,7 @@ behavior:"smooth"
 }
 
 
-/* کارت محصول */
+/* ================= PRODUCT CARD ================= */
 
 function productCard(p){
 
@@ -1323,11 +1423,13 @@ src="${esc(imgSrc(p.photo))}"
 onclick="zoom('${encodeURIComponent(p.photo||"")}')"
 >
 
+
 <div class="pbody">
 
 <b>
 ${esc(p.name)}
 </b>
+
 
 <div class="price">
 
@@ -1342,6 +1444,7 @@ p.oldPrice
 ${esc(p.price||"تماس بگیرید")}
 
 </div>
+
 
 <div class="desc">
 ${esc(p.description||"")}
@@ -1384,7 +1487,7 @@ onclick="deleteProduct('${p.id}')"
 }
 
 
-/* بزرگنمایی عکس */
+/* ================= ZOOM ================= */
 
 function zoom(enc){
 
@@ -1418,6 +1521,7 @@ onclick="closeModal()"
 
 </div>
 
+
 <img
 src="${esc(src)}"
 style="
@@ -1433,6 +1537,11 @@ onclick="closeModal()"
 `);
 
 }
+
+
+/* ================================================= */
+/* ================= ADMIN ================= */
+/* ================================================= */
 
 
 /* ورود مدیریت */
@@ -1453,7 +1562,7 @@ openModal(`
 <div class="modalhead">
 
 <h3>
-ورود مدیریت
+🔐 ورود مدیریت
 </h3>
 
 <button
@@ -1468,17 +1577,26 @@ onclick="closeModal()"
 
 <div class="form">
 
+<div class="notice">
+این بخش مخصوص مدیریت فروشگاه است.
+ویرایش دسته‌بندی‌ها و محصولات فقط برای مدیر امکان‌پذیر است.
+</div>
+
+
 <input
 id="adminPass"
 type="password"
+inputmode="numeric"
 placeholder="رمز مدیریت"
+autocomplete="off"
 >
+
 
 <button
 class="btn gold"
 onclick="login()"
 >
-ورود
+ورود به مدیریت
 </button>
 
 </div>
@@ -1492,9 +1610,13 @@ onclick="login()"
 
 function login(){
 
-if(
-document.getElementById("adminPass").value==="4450"
-){
+const pass=
+document
+.getElementById("adminPass")
+.value;
+
+
+if(pass===ADMIN_PASSWORD){
 
 admin=true;
 
@@ -1505,47 +1627,15 @@ sessionStorage.setItem(
 
 closeModal();
 
-updateAdminButtons();
-
-if(
-!document
-.getElementById("categoriesPage")
-.classList.contains("hidden")
-){
-
-renderCategoriesPage();
-
-}
-
 showToast(
-"ورود مدیریت انجام شد"
+"ورود مدیریت با موفقیت انجام شد"
 );
 
 }else{
 
 showToast(
-"رمز اشتباه است"
+"رمز مدیریت اشتباه است"
 );
-
-}
-
-}
-
-
-/* دکمه های مدیریت */
-
-function updateAdminButtons(){
-
-const btn=
-document.getElementById("catManagerBtn");
-
-if(admin){
-
-btn.classList.remove("hidden");
-
-}else{
-
-btn.classList.add("hidden");
 
 }
 
@@ -1561,7 +1651,7 @@ openModal(`
 <div class="modalhead">
 
 <h3>
-مدیریت فروشگاه
+⚙️ مدیریت فروشگاه
 </h3>
 
 <button
@@ -1573,17 +1663,27 @@ onclick="closeModal()"
 
 </div>
 
+
+<div class="notice">
+
+شما وارد بخش مدیریت شده‌اید.
+تمام امکانات ویرایش دسته‌بندی و محصولات فقط از این بخش در دسترس است.
+
+</div>
+
+
 <div
-class="actions"
-style="justify-content:flex-start"
+class="form"
+style="margin-top:14px"
 >
 
 <button
 class="btn"
 onclick="openCategoryManager()"
 >
-📂 مدیریت دسته‌ها
+📂 مدیریت دسته‌بندی‌ها
 </button>
+
 
 <button
 class="btn gold"
@@ -1592,8 +1692,17 @@ onclick="openProductForm()"
 ➕ افزودن محصول
 </button>
 
+
 <button
 class="btn light"
+onclick="openProductManager()"
+>
+📦 مدیریت محصولات
+</button>
+
+
+<button
+class="btn red"
 onclick="logout()"
 >
 خروج از مدیریت
@@ -1606,40 +1715,7 @@ onclick="logout()"
 }
 
 
-/* خروج */
-
-function logout(){
-
-admin=false;
-
-sessionStorage.removeItem(
-"verona_admin"
-);
-
-closeModal();
-
-updateAdminButtons();
-
-if(
-!document
-.getElementById("categoriesPage")
-.classList.contains("hidden")
-){
-
-renderCategoriesPage();
-
-}
-
-if(selectedCategory){
-
-showCategory(selectedCategory);
-
-}
-
-}
-
-
-/* مدیریت دسته ها */
+/* مدیریت دسته بندی */
 
 function openCategoryManager(){
 
@@ -1651,60 +1727,55 @@ return;
 
 }
 
+
 renderCategoryManager();
 
 }
 
 
-/* نمایش مدیریت دسته ها */
+/* نمایش دسته بندی مدیریت */
 
 function renderCategoryManager(){
+
+if(!admin){
+
+openLogin();
+
+return;
+
+}
+
 
 openModal(`
 
 <div class="modalhead">
 
 <h3>
-مدیریت دسته‌بندی‌ها
+📂 مدیریت دسته‌بندی‌ها
 </h3>
 
 <button
 class="btn light"
-onclick="closeModal()"
+onclick="openAdminPanel()"
 >
-بستن
+← برگشت
 </button>
 
 </div>
 
-
-<div
-class="actions"
-style="justify-content:flex-start;margin-bottom:12px"
->
 
 <button
 class="btn gold"
 onclick="openCategoryForm()"
+style="margin-bottom:13px"
 >
-➕ افزودن دسته
+➕ افزودن دسته جدید
 </button>
-
-</div>
 
 
 ${categories.map(c=>`
 
-<div
-class="panel"
-style="
-margin-bottom:9px;
-padding:11px;
-display:flex;
-align-items:center;
-gap:10px;
-"
->
+<div class="admin-item">
 
 <img
 src="${esc(c.img)}"
@@ -1716,9 +1787,10 @@ border-radius:8px;
 "
 >
 
-<b style="flex:1">
+<div class="admin-item-name">
 ${esc(c.name)}
-</b>
+</div>
+
 
 <button
 class="btn light"
@@ -1726,6 +1798,7 @@ onclick="editCategory('${encodeURIComponent(c.name)}')"
 >
 ویرایش
 </button>
+
 
 <button
 class="btn red"
@@ -1746,6 +1819,15 @@ onclick="deleteCategory('${encodeURIComponent(c.name)}')"
 /* فرم دسته */
 
 function openCategoryForm(oldName=""){
+
+if(!admin){
+
+openLogin();
+
+return;
+
+}
+
 
 editingCategory=
 oldName
@@ -1773,7 +1855,7 @@ ${editingCategory?"ویرایش دسته":"افزودن دسته"}
 class="btn light"
 onclick="renderCategoryManager()"
 >
-بازگشت
+← برگشت
 </button>
 
 </div>
@@ -1787,17 +1869,19 @@ placeholder="نام دسته"
 value="${esc(c.name||"")}"
 >
 
+
 <input
 id="catImg"
 placeholder="آدرس تصویر"
 value="${esc(c.img||"")}"
 >
 
+
 <button
 class="btn gold"
 onclick="saveCategory()"
 >
-ذخیره
+ذخیره دسته
 </button>
 
 </div>
@@ -1811,6 +1895,14 @@ onclick="saveCategory()"
 
 function editCategory(n){
 
+if(!admin){
+
+openLogin();
+
+return;
+
+}
+
 openCategoryForm(n);
 
 }
@@ -1819,6 +1911,15 @@ openCategoryForm(n);
 /* ذخیره دسته */
 
 function saveCategory(){
+
+if(!admin){
+
+openLogin();
+
+return;
+
+}
+
 
 const name=
 document
@@ -1903,16 +2004,6 @@ editingCategory=null;
 
 renderCategoryManager();
 
-if(
-!document
-.getElementById("categoriesPage")
-.classList.contains("hidden")
-){
-
-renderCategoriesPage();
-
-}
-
 showToast(
 "دسته ذخیره شد"
 );
@@ -1923,6 +2014,15 @@ showToast(
 /* حذف دسته */
 
 function deleteCategory(n){
+
+if(!admin){
+
+openLogin();
+
+return;
+
+}
+
 
 const name=
 decodeURIComponent(n);
@@ -1935,7 +2035,7 @@ p=>p.category===name
 ){
 
 showToast(
-"اول محصولات این دسته را جابه‌جا یا حذف کنید"
+"ابتدا محصولات این دسته را حذف یا جابه‌جا کنید"
 );
 
 return;
@@ -1959,15 +2059,115 @@ save();
 
 renderCategoryManager();
 
-if(
-!document
-.getElementById("categoriesPage")
-.classList.contains("hidden")
-){
+}
 
-renderCategoriesPage();
+
+/* ================================================= */
+/* ================= PRODUCT MANAGEMENT ============= */
+/* ================================================= */
+
+function openProductManager(){
+
+if(!admin){
+
+openLogin();
+
+return;
 
 }
+
+
+openModal(`
+
+<div class="modalhead">
+
+<h3>
+📦 مدیریت محصولات
+</h3>
+
+<button
+class="btn light"
+onclick="openAdminPanel()"
+>
+← برگشت
+</button>
+
+</div>
+
+
+<button
+class="btn gold"
+onclick="openProductForm()"
+style="margin-bottom:13px"
+>
+➕ افزودن محصول
+</button>
+
+
+${
+products.length
+?
+products.map(p=>`
+
+<div class="admin-item">
+
+<img
+src="${esc(imgSrc(p.photo))}"
+style="
+width:58px;
+height:45px;
+object-fit:cover;
+border-radius:8px;
+"
+>
+
+
+<div class="admin-item-name">
+
+<div>
+${esc(p.name)}
+</div>
+
+<div
+style="
+font-size:11px;
+color:#888;
+font-weight:400;
+"
+>
+${esc(p.category)}
+</div>
+
+</div>
+
+
+<button
+class="btn light"
+onclick="editProduct('${p.id}')"
+>
+ویرایش
+</button>
+
+
+<button
+class="btn red"
+onclick="deleteProductFromManager('${p.id}')"
+>
+حذف
+</button>
+
+</div>
+
+`).join("")
+:
+`
+<div class="notice">
+هنوز محصولی ثبت نشده است.
+</div>
+`
+}
+
+`);
 
 }
 
@@ -2013,15 +2213,16 @@ ${editingProduct?"ویرایش محصول":"افزودن محصول"}
 
 <button
 class="btn light"
-onclick="closeModal()"
+onclick="openAdminPanel()"
 >
-بستن
+← برگشت
 </button>
 
 </div>
 
 
 <div class="form">
+
 
 <input
 id="pName"
@@ -2037,6 +2238,7 @@ id="pPrice"
 placeholder="قیمت"
 value="${esc(p.price||"")}"
 >
+
 
 <input
 id="pOld"
@@ -2064,12 +2266,12 @@ ${esc(c.name)}
 
 <textarea
 id="pDesc"
-placeholder="توضیحات و کاربرد"
+placeholder="توضیحات و کاربرد محصول"
 >${esc(p.description||"")}</textarea>
 
 
 <div class="notice">
-عکس محصول را از دوربین یا گالری انتخاب کنید.
+عکس محصول را با دوربین یا گالری انتخاب کنید.
 </div>
 
 
@@ -2084,6 +2286,7 @@ onclick="document.getElementById('camera').click()"
 >
 📷 دوربین
 </button>
+
 
 <button
 class="btn light"
@@ -2125,6 +2328,7 @@ onclick="saveProduct()"
 ذخیره محصول
 </button>
 
+
 </div>
 
 `);
@@ -2135,6 +2339,19 @@ onclick="saveProduct()"
 /* انتخاب عکس */
 
 function picked(input){
+
+if(!admin){
+
+input.value="";
+
+showToast(
+"ابتدا وارد مدیریت شوید"
+);
+
+return;
+
+}
+
 
 const f=
 input.files &&
@@ -2192,6 +2409,15 @@ input.value="";
 /* ذخیره محصول */
 
 function saveProduct(){
+
+if(!admin){
+
+openLogin();
+
+return;
+
+}
+
 
 const name=
 document
@@ -2275,18 +2501,26 @@ save();
 editingProduct=null;
 currentPhoto="";
 
+
+if(
+selectedCategory===data.category
+){
+
 closeModal();
-
-selectedCategory=
-data.category;
-
 
 showCategory(
 selectedCategory
 );
 
+}else{
+
+openProductManager();
+
+}
+
+
 showToast(
-"محصول ذخیره شد"
+"محصول با موفقیت ذخیره شد"
 );
 
 }
@@ -2296,7 +2530,51 @@ showToast(
 
 function editProduct(id){
 
+if(!admin){
+
+openLogin();
+
+return;
+
+}
+
 openProductForm(id);
+
+}
+
+
+/* حذف از صفحه مدیریت */
+
+function deleteProductFromManager(id){
+
+if(!admin){
+
+openLogin();
+
+return;
+
+}
+
+
+if(
+!confirm("این محصول حذف شود؟")
+)
+return;
+
+
+products=
+products.filter(
+p=>p.id!==id
+);
+
+
+save();
+
+openProductManager();
+
+showToast(
+"محصول حذف شد"
+);
 
 }
 
@@ -2304,6 +2582,15 @@ openProductForm(id);
 /* حذف محصول */
 
 function deleteProduct(id){
+
+if(!admin){
+
+openLogin();
+
+return;
+
+}
+
 
 if(
 !confirm("محصول حذف شود؟")
@@ -2330,16 +2617,40 @@ showToast(
 }
 
 
-/* محاسبه گر */
+/* خروج از مدیریت */
+
+function logout(){
+
+admin=false;
+
+sessionStorage.removeItem(
+"verona_admin"
+);
+
+closeModal();
+
+showToast(
+"از مدیریت خارج شدید"
+);
+
+}
+
+
+/* ================================================= */
+/* ================= CALCULATOR ==================== */
+/* ================================================= */
 
 function openCalculator(){
 
 openModal(`
 
+<div class="calculator-box">
+
+
 <div class="modalhead">
 
-<h3>
-محاسبه‌گر متراژ مورد نیاز
+<h3 class="calc-title">
+📐 محاسبه‌گر تبدیل واحد
 </h3>
 
 <button
@@ -2352,65 +2663,151 @@ onclick="closeModal()"
 </div>
 
 
+<div class="calc-subtitle">
+
+محاسبات فقط بر اساس واحد «متر» انجام می‌شود.
+برای تبدیل مترمربع به متر طول یا متر طول به مترمربع، عرض سنگ را نیز وارد کنید.
+
+</div>
+
+
 <div class="notice">
 
-نتیجه تقریبی است و برش و شرایط پروژه می‌تواند مقدار نهایی را تغییر دهد.
+⚠️ نتیجه محاسبه تقریبی است و با توجه به برش، پرت، نوع اجرا و شرایط پروژه ممکن است تغییر کند.
 
 </div>
 
 
 <div
 class="form"
-style="margin-top:12px"
+style="margin-top:18px"
 >
 
-<select id="calcType">
 
-<option value="area">
-محاسبه متراژ - مترمربع
+<div class="calc-field">
+
+<label class="calc-label">
+نوع تبدیل
+</label>
+
+<select
+id="calcType"
+class="calc-input"
+onchange="updateCalculatorFields()"
+>
+
+<option value="areaToLength">
+مترمربع ← متر طول
 </option>
 
-<option value="linear">
-محاسبه طول - متر
+<option value="lengthToArea">
+متر طول ← مترمربع
 </option>
 
 </select>
 
+</div>
+
+
+<div class="calc-field">
+
+<label class="calc-label">
+کاربری
+</label>
+
+<select
+id="calcUsage"
+class="calc-input"
+>
+
+<option>
+نمای ساختمان
+</option>
+
+<option>
+کف
+</option>
+
+<option>
+پله
+</option>
+
+<option>
+سنگ فرش
+</option>
+
+<option>
+صفحه کابینت
+</option>
+
+<option>
+سایر
+</option>
+
+</select>
+
+</div>
+
+
+<div class="calc-field">
+
+<label
+id="calcAmountLabel"
+class="calc-label"
+>
+مقدار مترمربع
+</label>
 
 <input
-id="calcA"
+id="calcAmount"
+class="calc-input"
 type="number"
 step="0.01"
-placeholder="طول - متر"
+inputmode="decimal"
+placeholder="مثلاً 25"
 >
 
+</div>
+
+
+<div class="calc-field">
+
+<label class="calc-label">
+عرض سنگ به متر
+</label>
 
 <input
-id="calcB"
+id="calcWidth"
+class="calc-input"
 type="number"
 step="0.01"
-placeholder="عرض - متر"
+inputmode="decimal"
+placeholder="مثلاً 0.40"
 >
 
-
-<input
-id="waste"
-type="number"
-step="0.1"
-value="10"
-placeholder="پرت پیشنهادی درصد"
->
+</div>
 
 
 <button
 class="btn gold"
-onclick="calc()"
+style="
+width:100%;
+padding:15px;
+font-size:16px;
+"
+onclick="calculateConversion()"
 >
 محاسبه
 </button>
 
 
-<div id="calcResult"></div>
+<div
+id="calcResult"
+class="calc-result hidden"
+></div>
+
+
+</div>
 
 </div>
 
@@ -2419,30 +2816,91 @@ onclick="calc()"
 }
 
 
-/* محاسبه */
+/* تغییر عنوان فیلد */
 
-function calc(){
+function updateCalculatorFields(){
 
-let a=
-+document
-.getElementById("calcA")
+const type=
+document
+.getElementById("calcType")
 .value;
 
-let b=
-+document
-.getElementById("calcB")
+
+const label=
+document
+.getElementById("calcAmountLabel");
+
+
+const input=
+document
+.getElementById("calcAmount");
+
+
+if(type==="areaToLength"){
+
+label.textContent=
+"مقدار مترمربع";
+
+input.placeholder=
+"مثلاً 25";
+
+}else{
+
+label.textContent=
+"مقدار متر طول";
+
+input.placeholder=
+"مثلاً 30";
+
+}
+
+}
+
+
+/* محاسبه تبدیل */
+
+function calculateConversion(){
+
+const type=
+document
+.getElementById("calcType")
 .value;
 
-let w=
-+document
-.getElementById("waste")
-.value||0;
+
+const usage=
+document
+.getElementById("calcUsage")
+.value;
 
 
-if(!a||!b){
+const amount=
+parseFloat(
+document
+.getElementById("calcAmount")
+.value
+);
+
+
+const width=
+parseFloat(
+document
+.getElementById("calcWidth")
+.value
+);
+
+
+const result=
+document
+.getElementById("calcResult");
+
+
+if(
+!amount ||
+amount<=0
+){
 
 showToast(
-"طول و عرض را وارد کنید"
+"مقدار را به‌درستی وارد کنید"
 );
 
 return;
@@ -2450,22 +2908,79 @@ return;
 }
 
 
-let r=
-a*b*(1+w/100);
+if(
+!width ||
+width<=0
+){
+
+showToast(
+"عرض سنگ را به متر وارد کنید"
+);
+
+return;
+
+}
 
 
-document.getElementById(
-"calcResult"
-).innerHTML=`
+let value;
 
-<div class="notice">
 
-مقدار پیشنهادی با احتساب ${w}% پرت:
+if(type==="areaToLength"){
 
-<b>
-${r.toFixed(2)} مترمربع
-</b>
+/*
+متر طول = مترمربع ÷ عرض
+*/
 
+value=
+amount/width;
+
+
+result.innerHTML=`
+
+<div>
+کاربری:
+<b>${esc(usage)}</b>
+</div>
+
+<div>
+${amount} مترمربع ÷ ${width} متر
+</div>
+
+<div style="margin-top:7px">
+مقدار مورد نیاز:
+<strong>
+${formatNumber(value)} متر طول
+</strong>
+</div>
+
+`;
+
+}else{
+
+/*
+مترمربع = متر طول × عرض
+*/
+
+value=
+amount*width;
+
+
+result.innerHTML=`
+
+<div>
+کاربری:
+<b>${esc(usage)}</b>
+</div>
+
+<div>
+${amount} متر طول × ${width} متر
+</div>
+
+<div style="margin-top:7px">
+مساحت:
+<strong>
+${formatNumber(value)} مترمربع
+</strong>
 </div>
 
 `;
@@ -2473,7 +2988,52 @@ ${r.toFixed(2)} مترمربع
 }
 
 
-/* تماس مدیریت */
+result.classList.remove("hidden");
+
+}
+
+
+/* عدد خوانا */
+
+function formatNumber(n){
+
+return Number(n.toFixed(3))
+.toLocaleString("fa-IR");
+
+}
+
+
+/* ================================================= */
+/* ================= SEARCH ========================= */
+/* ================================================= */
+
+function searchHome(){
+
+const q=
+document
+.getElementById("search")
+.value
+.trim();
+
+
+if(!q)
+return;
+
+
+openCategories();
+
+document
+.getElementById("categorySearch")
+.value=q;
+
+renderCategoriesPage();
+
+}
+
+
+/* ================================================= */
+/* ================= CONTACT ======================== */
+/* ================================================= */
 
 function openContact(){
 
@@ -2488,7 +3048,7 @@ openModal(`
 <div class="modalhead">
 
 <h3>
-تماس با مدیریت
+☎️ تماس با مدیریت
 </h3>
 
 <button
@@ -2538,9 +3098,14 @@ target="_blank"
 }
 
 
-/* شروع */
+/* ================================================= */
+/* ================= START ========================== */
+/* ================================================= */
 
-updateAdminButtons();
+/*
+مدیریت از بیرون قابل دسترسی نیست.
+فقط دکمه مدیریت → رمز → پنل مدیریت
+*/
 
 </script>
 
