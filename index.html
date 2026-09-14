@@ -1,4 +1,4 @@
-<!doctype html> 
+<!doctype html>
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8">
@@ -25,6 +25,10 @@
 
 *{box-sizing:border-box}
 
+html{
+scroll-behavior:smooth;
+}
+
 body{
 margin:0;
 background:var(--cream);
@@ -34,6 +38,12 @@ font-family:Vazirmatn,Arial,sans-serif;
 
 button,input,textarea,select{font:inherit}
 button{cursor:pointer}
+
+.hidden{
+display:none!important;
+}
+
+/* HEADER */
 
 header{
 background:#fff;
@@ -53,7 +63,6 @@ text-align:center;
 
 .brand{
 font-family:Lalezar;
-color:#17627a;
 background:linear-gradient(90deg,#0f4d62,#1590a6);
 -webkit-background-clip:text;
 background-clip:text;
@@ -98,6 +107,8 @@ color:var(--green);
 .btn.red{
 background:var(--danger);
 }
+
+/* MAIN */
 
 .wrap{
 max-width:1150px;
@@ -203,6 +214,7 @@ width:100%;
 height:180px;
 object-fit:cover;
 cursor:zoom-in;
+display:block;
 }
 
 .pbody{
@@ -255,9 +267,7 @@ grid-template-columns:1fr 1fr;
 gap:10px;
 }
 
-.hidden{
-display:none!important;
-}
+/* MODAL */
 
 .modal{
 position:fixed;
@@ -314,27 +324,308 @@ z-index:200;
 display:none;
 }
 
+/* FOOTER */
+
 .footer{
 text-align:center;
 color:#777;
 margin-top:35px;
 font-size:13px;
+line-height:2;
 }
 
+/* صفحه خوش آمدگویی */
+
+.welcome-screen{
+position:fixed;
+inset:0;
+z-index:999;
+background:
+linear-gradient(135deg,#173f36f5,#24594bf5),
+url("images/travertine.jpg.jpg") center/cover;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:20px;
+}
+
+.welcome-card{
+width:min(520px,94vw);
+background:#fff;
+border-radius:28px;
+padding:38px 25px 28px;
+text-align:center;
+box-shadow:0 20px 60px #0005;
+border:1px solid var(--gold2);
+}
+
+.welcome-title{
+font-family:Lalezar;
+font-size:30px;
+color:var(--gold);
+margin:0 0 18px;
+}
+
+.welcome-text{
+font-size:18px;
+font-weight:600;
+line-height:2.1;
+color:var(--green);
+margin:0 auto 25px;
+}
+
+.catalog-btn{
+width:100%;
+border:0;
+border-radius:15px;
+padding:14px 20px;
+background:var(--green);
+color:#fff;
+font-weight:800;
+font-size:16px;
+}
+
+/* صفحه دسته بندی */
+
+.category-page-head{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+margin-bottom:14px;
+}
+
+.page-title{
+font-family:Lalezar;
+font-size:28px;
+color:var(--green);
+margin:0;
+}
+
+.page-back{
+border:0;
+border-radius:12px;
+padding:9px 14px;
+background:#f3ecdc;
+color:var(--green);
+font-weight:700;
+}
+
+/* موبایل */
+
 @media(max-width:600px){
+
+header{
+position:relative;
+}
+
+.top{
+padding:13px 10px 11px;
+}
+
+.brand{
+font-size:39px;
+}
+
+.sub{
+font-size:12px;
+margin:5px 0 10px;
+}
+
+.actions{
+gap:6px;
+}
+
+.btn{
+padding:8px 10px;
+font-size:12px;
+border-radius:11px;
+}
+
+.wrap{
+padding:12px 10px 30px;
+}
+
+.search{
+padding:12px 13px;
+border-radius:13px;
+margin-bottom:12px;
+}
+
+.grid{
+grid-template-columns:repeat(2,minmax(0,1fr));
+gap:9px;
+}
+
+.cat{
+border-radius:14px;
+}
+
+.cat img{
+height:105px;
+}
+
+.catbody{
+padding:9px;
+}
+
+.cat h3{
+font-size:14px;
+}
+
+.cat .mini{
+margin-top:7px;
+gap:4px;
+}
+
+.mini button{
+padding:6px 7px;
+font-size:11px;
+}
+
+.section{
+margin-top:17px;
+}
+
+.section h2{
+font-size:22px;
+margin-bottom:8px;
+}
+
+.panel{
+padding:10px;
+border-radius:15px;
+}
+
+.products{
+grid-template-columns:repeat(2,minmax(0,1fr));
+gap:9px;
+}
+
+.product{
+border-radius:13px;
+}
+
+.product img{
+height:145px;
+}
+
+.pbody{
+padding:9px;
+}
+
+.pbody b{
+font-size:13px;
+line-height:1.5;
+display:block;
+}
+
+.price{
+font-size:12px;
+margin:5px 0;
+}
+
+.old{
+font-size:10px;
+}
+
+.desc{
+font-size:11px;
+line-height:1.6;
+}
+
+.category-page-head{
+align-items:center;
+}
+
+.page-title{
+font-size:23px;
+}
+
+.page-back{
+font-size:11px;
+padding:8px 10px;
+}
+
+.modal{
+padding:8px;
+}
+
+.modalbox{
+width:100%;
+max-width:none;
+max-height:94vh;
+border-radius:17px;
+padding:13px;
+}
+
+.welcome-card{
+padding:30px 18px 22px;
+border-radius:22px;
+}
+
+.welcome-title{
+font-size:25px;
+}
+
+.welcome-text{
+font-size:15px;
+line-height:2;
+}
+
+.catalog-btn{
+font-size:15px;
+padding:13px;
+}
+
+.footer{
+margin-top:22px;
+font-size:11px;
+}
+
 .row{
 grid-template-columns:1fr;
 }
+
 }
 </style>
 </head>
 
 <body>
 
+<!-- صفحه خوش آمدگویی -->
+
+<div id="welcomeScreen" class="welcome-screen">
+
+<div class="welcome-card">
+
+<h2 class="welcome-title">
+پرسنل محترم ورونا
+</h2>
+
+<p class="welcome-text">
+برای شما، کسب‌وکاری پُررونق و روزهایی سرشار از موفقیت آرزومندیم.
+</p>
+
+<button
+class="catalog-btn"
+onclick="openCatalog()"
+>
+مشاهده کاتالوگ
+</button>
+
+</div>
+
+</div>
+
+
 <header>
+
 <div class="top">
 
-<h1 class="brand">فروشگاه سنگ ورونا</h1>
+<h1 class="brand">
+فروشگاه سنگ ورونا
+</h1>
 
 <div class="sub">
 سنگ ورونا شهرکرد | کیفیت، زیبایی و انتخاب مطمئن
@@ -342,47 +633,98 @@ grid-template-columns:1fr;
 
 <div class="actions">
 
-<button class="btn" onclick="openCalculator()">
+<button
+class="btn"
+onclick="openCategories()"
+>
+📂 دسته‌بندی محصولات
+</button>
+
+<button
+class="btn"
+onclick="openCalculator()"
+>
 📐 محاسبه‌گر متراژ
 </button>
 
-<button class="btn light" onclick="openAbout()">
-ℹ️ درباره ورونا
-</button>
-
-<button class="btn light" onclick="openContact()">
+<button
+class="btn light"
+onclick="openContact()"
+>
 ☎️ تماس با مدیریت
 </button>
 
-<button id="adminBtn" class="btn gold" onclick="openLogin()">
+<button
+id="adminBtn"
+class="btn gold"
+onclick="openLogin()"
+>
 🔐 مدیریت
 </button>
 
-<button id="catManagerBtn" class="btn light hidden" onclick="openCategoryManager()">
+<button
+id="catManagerBtn"
+class="btn light hidden"
+onclick="openCategoryManager()"
+>
 📂 مدیریت دسته‌ها
 </button>
 
 </div>
+
 </div>
+
 </header>
 
 
 <main class="wrap">
 
+<!-- صفحه اصلی -->
+
+<div id="homePage">
+
 <input
 id="search"
 class="search"
 placeholder="🔎 جستجو در دسته‌بندی و محصولات..."
-oninput="renderAll()"
+oninput="searchHome()"
 >
-
-<div id="categories" class="grid"></div>
-
-<div id="categoryProducts" class="section hidden"></div>
 
 <div class="section">
 
-<h2>محاسبه سریع</h2>
+<h2>
+کاتالوگ فروشگاه
+</h2>
+
+<div class="panel">
+
+<div class="notice">
+برای مشاهده محصولات، ابتدا دسته‌بندی مورد نظر خود را انتخاب کنید.
+</div>
+
+<div
+class="actions"
+style="margin-top:12px"
+>
+
+<button
+class="btn gold"
+onclick="openCategories()"
+>
+📂 مشاهده دسته‌بندی‌ها
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<h2>
+محاسبه سریع
+</h2>
 
 <div class="panel">
 
@@ -390,15 +732,22 @@ oninput="renderAll()"
 نتیجه محاسبه تقریبی و پیشنهادی است و با توجه به برش، پرت و شرایط پروژه ممکن است تغییر کند.
 </div>
 
-<div class="actions" style="margin-top:12px">
+<div
+class="actions"
+style="margin-top:12px"
+>
 
-<button class="btn gold" onclick="openCalculator()">
+<button
+class="btn gold"
+onclick="openCalculator()"
+>
 شروع محاسبه
 </button>
 
 </div>
 
 </div>
+
 </div>
 
 <div class="footer">
@@ -407,12 +756,66 @@ oninput="renderAll()"
 شنبه تا پنجشنبه، ۸ صبح تا ۸ شب
 </div>
 
+</div>
+
+
+<!-- صفحه دسته بندی -->
+
+<div
+id="categoriesPage"
+class="hidden"
+>
+
+<div class="category-page-head">
+
+<h2 class="page-title">
+دسته‌بندی محصولات
+</h2>
+
+<button
+class="page-back"
+onclick="backHome()"
+>
+← برگشت
+</button>
+
+</div>
+
+<input
+id="categorySearch"
+class="search"
+placeholder="🔎 جستجو در دسته‌بندی‌ها..."
+oninput="renderCategoriesPage()"
+>
+
+<div
+id="categories"
+class="grid"
+></div>
+
+</div>
+
+
+<!-- صفحه محصولات -->
+
+<div
+id="categoryProducts"
+class="hidden"
+></div>
+
 </main>
 
 
-<div id="modal" class="modal hidden" onclick="if(event.target===this)closeModal()">
+<div
+id="modal"
+class="modal hidden"
+onclick="if(event.target===this)closeModal()"
+>
 
-<div id="modalbox" class="modalbox"></div>
+<div
+id="modalbox"
+class="modalbox"
+></div>
 
 </div>
 
@@ -486,12 +889,17 @@ img:"images/elamanzibasaazi.jpg.jpg"
 
 
 let categories=
-JSON.parse(localStorage.getItem(CATEGORIES_KEY)||"null")
-||defaultCategories;
+JSON.parse(
+localStorage.getItem(CATEGORIES_KEY)||"null"
+)
+||
+defaultCategories;
 
 
 let products=
-JSON.parse(localStorage.getItem(PRODUCTS_KEY)||"[]");
+JSON.parse(
+localStorage.getItem(PRODUCTS_KEY)||"[]"
+);
 
 
 let admin=
@@ -503,6 +911,8 @@ let editingProduct=null;
 let editingCategory=null;
 let selectedCategory="";
 
+
+/* ذخیره */
 
 function save(){
 
@@ -518,6 +928,8 @@ JSON.stringify(products)
 
 }
 
+
+/* امن کردن متن */
 
 function esc(s){
 
@@ -535,9 +947,12 @@ m=>({
 }
 
 
+/* پیام */
+
 function showToast(t){
 
-let x=document.getElementById("toast");
+let x=
+document.getElementById("toast");
 
 x.textContent=t;
 x.style.display="block";
@@ -548,6 +963,8 @@ x.style.display="none";
 
 }
 
+
+/* مودال */
 
 function openModal(html){
 
@@ -569,6 +986,8 @@ document
 }
 
 
+/* تصویر */
+
 function imgSrc(p){
 
 return p ||
@@ -583,10 +1002,106 @@ encodeURIComponent(
 }
 
 
-function renderAll(){
+/* خوش آمدگویی */
+
+function openCatalog(){
+
+document
+.getElementById("welcomeScreen")
+.classList.add("hidden");
+
+window.scrollTo({
+top:0,
+behavior:"instant"
+});
+
+}
+
+
+/* باز کردن دسته بندی */
+
+function openCategories(){
+
+document
+.getElementById("homePage")
+.classList.add("hidden");
+
+document
+.getElementById("categoryProducts")
+.classList.add("hidden");
+
+document
+.getElementById("categoriesPage")
+.classList.remove("hidden");
+
+renderCategoriesPage();
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+
+}
+
+
+/* برگشت به خانه */
+
+function backHome(){
+
+selectedCategory="";
+
+document
+.getElementById("categoriesPage")
+.classList.add("hidden");
+
+document
+.getElementById("categoryProducts")
+.classList.add("hidden");
+
+document
+.getElementById("homePage")
+.classList.remove("hidden");
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+
+}
+
+
+/* جستجوی صفحه اصلی */
+
+function searchHome(){
 
 const q=
-document.getElementById("search")
+document
+.getElementById("search")
+.value
+.trim();
+
+if(q){
+
+openCategories();
+
+document
+.getElementById("categorySearch")
+.value=q;
+
+renderCategoriesPage();
+
+}
+
+}
+
+
+/* نمایش دسته بندی ها */
+
+function renderCategoriesPage(){
+
+const q=
+document
+.getElementById("categorySearch")
 .value
 .trim()
 .toLowerCase();
@@ -598,12 +1113,16 @@ document.getElementById("categories");
 cbox.innerHTML="";
 
 
-categories
-.filter(c=>
+const filtered=
+categories.filter(c=>
 !q ||
-c.name.toLowerCase().includes(q)
-)
-.forEach(c=>{
+c.name
+.toLowerCase()
+.includes(q)
+);
+
+
+filtered.forEach(c=>{
 
 const count=
 products.filter(
@@ -622,9 +1141,13 @@ onerror="this.style.opacity=.25"
 
 <div class="catbody">
 
-<h3>${esc(c.name)}</h3>
+<h3>
+${esc(c.name)}
+</h3>
 
-<div style="font-size:12px;color:#788">
+<div
+style="font-size:12px;color:#788"
+>
 ${count} محصول
 </div>
 
@@ -652,47 +1175,40 @@ onclick="deleteCategory('${encodeURIComponent(c.name)}')"
 حذف
 </button>
 `
-:""
+:
+""
 }
 
 </div>
 
 </div>
+
 </div>
 
 `;
 
 });
 
+if(!filtered.length){
 
-if(admin){
+cbox.innerHTML=`
 
-document
-.getElementById("catManagerBtn")
-.classList.remove("hidden");
+<div class="notice">
+دسته‌ای با این نام پیدا نشد.
+</div>
 
-}else{
+`;
 
-document
-.getElementById("catManagerBtn")
-.classList.add("hidden");
+}
+
+updateAdminButtons();
 
 }
 
 
-if(selectedCategory){
+/* نمایش محصولات یک دسته */
 
-showCategory(
-selectedCategory,
-true
-);
-
-}
-
-}
-
-
-function showCategory(name,silent=false){
+function showCategory(name){
 
 selectedCategory=
 typeof name==="string"
@@ -702,28 +1218,24 @@ decodeURIComponent(name)
 name;
 
 
+document
+.getElementById("homePage")
+.classList.add("hidden");
+
+document
+.getElementById("categoriesPage")
+.classList.add("hidden");
+
 const box=
 document.getElementById("categoryProducts");
 
-
-const q=
-document.getElementById("search")
-.value
-.trim()
-.toLowerCase();
+box.classList.remove("hidden");
 
 
 const list=
 products
 .filter(p=>
-p.category===selectedCategory &&
-(
-!q ||
-[p.name,p.description,p.category]
-.join(" ")
-.toLowerCase()
-.includes(q)
-)
+p.category===selectedCategory
 )
 .sort(
 (a,b)=>
@@ -731,12 +1243,23 @@ p.category===selectedCategory &&
 );
 
 
-box.classList.remove("hidden");
-
-
 box.innerHTML=`
 
-<h2>${esc(selectedCategory)}</h2>
+<div class="category-page-head">
+
+<h2 class="page-title">
+${esc(selectedCategory)}
+</h2>
+
+<button
+class="page-back"
+onclick="openCategories()"
+>
+← برگشت به دسته‌بندی‌ها
+</button>
+
+</div>
+
 
 <div class="panel">
 
@@ -779,18 +1302,15 @@ list.map(productCard).join("")
 
 `;
 
-
-if(!silent){
-
-box.scrollIntoView({
-behavior:"smooth",
-block:"start"
+window.scrollTo({
+top:0,
+behavior:"smooth"
 });
 
 }
 
-}
 
+/* کارت محصول */
 
 function productCard(p){
 
@@ -805,7 +1325,9 @@ onclick="zoom('${encodeURIComponent(p.photo||"")}')"
 
 <div class="pbody">
 
-<b>${esc(p.name)}</b>
+<b>
+${esc(p.name)}
+</b>
 
 <div class="price">
 
@@ -835,11 +1357,15 @@ class="mini"
 style="margin-top:10px"
 >
 
-<button onclick="editProduct('${p.id}')">
+<button
+onclick="editProduct('${p.id}')"
+>
 ویرایش
 </button>
 
-<button onclick="deleteProduct('${p.id}')">
+<button
+onclick="deleteProduct('${p.id}')"
+>
 حذف
 </button>
 
@@ -850,6 +1376,7 @@ style="margin-top:10px"
 }
 
 </div>
+
 </div>
 
 `;
@@ -857,15 +1384,30 @@ style="margin-top:10px"
 }
 
 
+/* بزرگنمایی عکس */
+
 function zoom(enc){
 
-const src=decodeURIComponent(enc);
+const src=
+decodeURIComponent(enc);
+
+
+if(!src){
+
+showToast("این محصول تصویر ندارد");
+
+return;
+
+}
+
 
 openModal(`
 
 <div class="modalhead">
 
-<h3>تصویر محصول</h3>
+<h3>
+تصویر محصول
+</h3>
 
 <button
 class="btn light"
@@ -880,16 +1422,20 @@ onclick="closeModal()"
 src="${esc(src)}"
 style="
 width:100%;
-max-height:70vh;
+max-height:75vh;
 object-fit:contain;
 border-radius:15px;
+cursor:zoom-out;
 "
+onclick="closeModal()"
 >
 
 `);
 
 }
 
+
+/* ورود مدیریت */
 
 function openLogin(){
 
@@ -906,7 +1452,9 @@ openModal(`
 
 <div class="modalhead">
 
-<h3>ورود مدیریت</h3>
+<h3>
+ورود مدیریت
+</h3>
 
 <button
 class="btn light"
@@ -940,6 +1488,8 @@ onclick="login()"
 }
 
 
+/* ورود */
+
 function login(){
 
 if(
@@ -955,18 +1505,54 @@ sessionStorage.setItem(
 
 closeModal();
 
-renderAll();
+updateAdminButtons();
 
-showToast("ورود مدیریت انجام شد");
+if(
+!document
+.getElementById("categoriesPage")
+.classList.contains("hidden")
+){
+
+renderCategoriesPage();
+
+}
+
+showToast(
+"ورود مدیریت انجام شد"
+);
 
 }else{
 
-showToast("رمز اشتباه است");
+showToast(
+"رمز اشتباه است"
+);
 
 }
 
 }
 
+
+/* دکمه های مدیریت */
+
+function updateAdminButtons(){
+
+const btn=
+document.getElementById("catManagerBtn");
+
+if(admin){
+
+btn.classList.remove("hidden");
+
+}else{
+
+btn.classList.add("hidden");
+
+}
+
+}
+
+
+/* پنل مدیریت */
 
 function openAdminPanel(){
 
@@ -974,7 +1560,9 @@ openModal(`
 
 <div class="modalhead">
 
-<h3>مدیریت فروشگاه</h3>
+<h3>
+مدیریت فروشگاه
+</h3>
 
 <button
 class="btn light"
@@ -1018,6 +1606,8 @@ onclick="logout()"
 }
 
 
+/* خروج */
+
 function logout(){
 
 admin=false;
@@ -1028,10 +1618,28 @@ sessionStorage.removeItem(
 
 closeModal();
 
-renderAll();
+updateAdminButtons();
+
+if(
+!document
+.getElementById("categoriesPage")
+.classList.contains("hidden")
+){
+
+renderCategoriesPage();
 
 }
 
+if(selectedCategory){
+
+showCategory(selectedCategory);
+
+}
+
+}
+
+
+/* مدیریت دسته ها */
 
 function openCategoryManager(){
 
@@ -1048,13 +1656,17 @@ renderCategoryManager();
 }
 
 
+/* نمایش مدیریت دسته ها */
+
 function renderCategoryManager(){
 
 openModal(`
 
 <div class="modalhead">
 
-<h3>مدیریت دسته‌بندی‌ها</h3>
+<h3>
+مدیریت دسته‌بندی‌ها
+</h3>
 
 <button
 class="btn light"
@@ -1131,6 +1743,8 @@ onclick="deleteCategory('${encodeURIComponent(c.name)}')"
 }
 
 
+/* فرم دسته */
+
 function openCategoryForm(oldName=""){
 
 editingCategory=
@@ -1193,12 +1807,16 @@ onclick="saveCategory()"
 }
 
 
+/* ویرایش دسته */
+
 function editCategory(n){
 
 openCategoryForm(n);
 
 }
 
+
+/* ذخیره دسته */
 
 function saveCategory(){
 
@@ -1220,7 +1838,9 @@ document
 
 if(!name){
 
-showToast("نام دسته را وارد کنید");
+showToast(
+"نام دسته را وارد کنید"
+);
 
 return;
 
@@ -1229,12 +1849,15 @@ return;
 
 if(
 categories.some(
-c=>c.name===name &&
+c=>
+c.name===name &&
 c.name!==editingCategory
 )
 ){
 
-showToast("این دسته قبلاً وجود دارد");
+showToast(
+"این دسته قبلاً وجود دارد"
+);
 
 return;
 
@@ -1280,16 +1903,29 @@ editingCategory=null;
 
 renderCategoryManager();
 
-renderAll();
+if(
+!document
+.getElementById("categoriesPage")
+.classList.contains("hidden")
+){
 
-showToast("دسته ذخیره شد");
+renderCategoriesPage();
+
+}
+
+showToast(
+"دسته ذخیره شد"
+);
 
 }
 
 
+/* حذف دسته */
+
 function deleteCategory(n){
 
-const name=decodeURIComponent(n);
+const name=
+decodeURIComponent(n);
 
 
 if(
@@ -1309,7 +1945,8 @@ return;
 
 if(
 !confirm("این دسته حذف شود؟")
-)return;
+)
+return;
 
 
 categories=
@@ -1322,10 +1959,20 @@ save();
 
 renderCategoryManager();
 
-renderAll();
+if(
+!document
+.getElementById("categoriesPage")
+.classList.contains("hidden")
+){
+
+renderCategoriesPage();
 
 }
 
+}
+
+
+/* فرم محصول */
 
 function openProductForm(id=null){
 
@@ -1485,6 +2132,8 @@ onclick="saveProduct()"
 }
 
 
+/* انتخاب عکس */
+
 function picked(input){
 
 const f=
@@ -1492,7 +2141,8 @@ input.files &&
 input.files[0];
 
 
-if(!f)return;
+if(!f)
+return;
 
 
 const r=
@@ -1501,11 +2151,14 @@ new FileReader();
 
 r.onload=e=>{
 
-currentPhoto=e.target.result;
+currentPhoto=
+e.target.result;
 
 
 const x=
-document.getElementById("photoPreview");
+document.getElementById(
+"photoPreview"
+);
 
 
 if(x){
@@ -1536,6 +2189,8 @@ input.value="";
 }
 
 
+/* ذخیره محصول */
+
 function saveProduct(){
 
 const name=
@@ -1547,7 +2202,9 @@ document
 
 if(!name){
 
-showToast("نام محصول را وارد کنید");
+showToast(
+"نام محصول را وارد کنید"
+);
 
 return;
 
@@ -1620,19 +2277,22 @@ currentPhoto="";
 
 closeModal();
 
-selectedCategory=data.category;
+selectedCategory=
+data.category;
 
-renderAll();
 
 showCategory(
-selectedCategory,
-true
+selectedCategory
 );
 
-showToast("محصول ذخیره شد");
+showToast(
+"محصول ذخیره شد"
+);
 
 }
 
+
+/* ویرایش محصول */
 
 function editProduct(id){
 
@@ -1641,11 +2301,14 @@ openProductForm(id);
 }
 
 
+/* حذف محصول */
+
 function deleteProduct(id){
 
 if(
 !confirm("محصول حذف شود؟")
-)return;
+)
+return;
 
 
 products=
@@ -1657,14 +2320,17 @@ p=>p.id!==id
 save();
 
 showCategory(
-selectedCategory,
-true
+selectedCategory
 );
 
-showToast("محصول حذف شد");
+showToast(
+"محصول حذف شد"
+);
 
 }
 
+
+/* محاسبه گر */
 
 function openCalculator(){
 
@@ -1753,16 +2419,24 @@ onclick="calc()"
 }
 
 
+/* محاسبه */
+
 function calc(){
 
 let a=
-+document.getElementById("calcA").value;
++document
+.getElementById("calcA")
+.value;
 
 let b=
-+document.getElementById("calcB").value;
++document
+.getElementById("calcB")
+.value;
 
 let w=
-+document.getElementById("waste").value||0;
++document
+.getElementById("waste")
+.value||0;
 
 
 if(!a||!b){
@@ -1799,50 +2473,7 @@ ${r.toFixed(2)} مترمربع
 }
 
 
-function openAbout(){
-
-openModal(`
-
-<div class="modalhead">
-
-<h3>درباره ورونا</h3>
-
-<button
-class="btn light"
-onclick="closeModal()"
->
-بستن
-</button>
-
-</div>
-
-
-<p>
-فروشگاه سنگ ورونا در شهرکرد، ارائه‌دهنده انواع سنگ ساختمانی و محصولات سنگی با تمرکز بر کیفیت و انتخاب مناسب پروژه است.
-</p>
-
-
-<div class="notice">
-
-آدرس:
-شهرکرد، خیابان امیرکبیر غربی، روبروی آهن‌آلات سپاهان
-
-<br>
-
-مدیریت:
-ولی‌الله قائدی
-
-<br>
-
-ساعت کاری:
-شنبه تا پنجشنبه، ۸ صبح تا ۸ شب
-
-</div>
-
-`);
-
-}
-
+/* تماس مدیریت */
 
 function openContact(){
 
@@ -1856,7 +2487,9 @@ openModal(`
 
 <div class="modalhead">
 
-<h3>تماس با مدیریت</h3>
+<h3>
+تماس با مدیریت
+</h3>
 
 <button
 class="btn light"
@@ -1905,7 +2538,9 @@ target="_blank"
 }
 
 
-renderAll();
+/* شروع */
+
+updateAdminButtons();
 
 </script>
 
