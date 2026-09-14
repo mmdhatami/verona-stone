@@ -436,13 +436,6 @@ main{padding:23px 13px 100px}
  margin-bottom:8px
 }
 
-.photoBtns{
- display:flex;
- gap:8px
-}
-
-.photoBtns button{flex:1}
-
 .calcgrid{
  display:grid;
  grid-template-columns:1fr 1fr;
@@ -509,17 +502,11 @@ main{padding:23px 13px 100px}
 
 <button class="btn soft" onclick="openAdminLogin()">🔐 مدیریت</button>
 
-<button class="btn soft adminOnly" onclick="logoutAdmin()">
-خروج مدیریت
-</button>
+<button class="btn soft adminOnly" onclick="logoutAdmin()">خروج مدیریت</button>
 
-<button class="btn soft adminOnly" onclick="openSettings()">
-⚙ تنظیمات
-</button>
+<button class="btn soft adminOnly" onclick="openSettings()">⚙ تنظیمات</button>
 
-<button class="btn gold adminOnly" onclick="openProduct()">
-＋ محصول جدید
-</button>
+<button class="btn gold adminOnly" onclick="openProduct()">＋ محصول جدید</button>
 
 </div>
 </div>
@@ -530,26 +517,23 @@ main{padding:23px 13px 100px}
 <section id="home">
 
 <div class="home-search">
+
 <input
 class="input"
 id="homeSearch"
 placeholder="🔎 جستجوی نام محصول، قیمت یا توضیحات..."
 oninput="homeSearchProducts()"
 >
+
 <div id="homeResults" class="home-results"></div>
+
 </div>
 
 <div class="section-title">دسته‌بندی محصولات</div>
 
 <div class="cats" id="cats"></div>
 
-<div
-class="calc-entry"
-onclick="openCalc()"
-role="button"
-tabindex="0"
-onkeydown="if(event.key==='Enter'||event.key===' ')openCalc()"
->
+<div class="calc-entry" onclick="openCalc()">
 
 <div>
 <h3>📐 محاسبات سنگ</h3>
@@ -564,9 +548,7 @@ onkeydown="if(event.key==='Enter'||event.key===' ')openCalc()"
 
 <section id="list" style="display:none">
 
-<button class="btn soft back" onclick="goHome()">
-← برگشت به صفحه قبل
-</button>
+<button class="btn soft back" onclick="goHome()">← برگشت به صفحه قبل</button>
 
 <h2 id="listTitle"></h2>
 
@@ -579,12 +561,7 @@ placeholder="جستجوی محصول..."
 oninput="renderList()"
 >
 
-<button
-class="btn gold adminOnly"
-onclick="openProduct()"
->
-＋ افزودن
-</button>
+<button class="btn gold adminOnly" onclick="openProduct()">＋ افزودن</button>
 
 </div>
 
@@ -594,20 +571,21 @@ onclick="openProduct()"
 
 </main>
 
-<button class="call" onclick="callManager()">
-☎ تماس با مدیریت
-</button>
+<button class="call" onclick="callManager()">☎ تماس با مدیریت</button>
 
 
-<!-- ADMIN LOGIN -->
+<!-- ورود مدیریت -->
 
 <div class="modal" id="adminModal">
 
 <div class="box">
 
 <div class="modal-head">
+
 <h2>🔐 ورود مدیریت</h2>
+
 <button class="close" onclick="closeModal('adminModal')">×</button>
+
 </div>
 
 <div class="login-info">
@@ -628,22 +606,13 @@ onkeydown="if(event.key==='Enter')loginAdmin()"
 
 </div>
 
-<div
-id="adminError"
-style="color:#c33;font-size:12px;margin-top:7px"
-></div>
+<div id="adminError" style="color:#c33;font-size:12px"></div>
 
-<button
-class="btn green wide"
-onclick="loginAdmin()"
->
+<button class="btn green wide" onclick="loginAdmin()">
 ورود به مدیریت
 </button>
 
-<button
-class="btn cancel"
-onclick="closeModal('adminModal')"
->
+<button class="btn cancel" onclick="closeModal('adminModal')">
 انصراف
 </button>
 
@@ -651,7 +620,7 @@ onclick="closeModal('adminModal')"
 </div>
 
 
-<!-- PRODUCT MODAL -->
+<!-- محصول -->
 
 <div class="modal" id="productModal">
 
@@ -661,23 +630,13 @@ onclick="closeModal('adminModal')"
 
 <h2 id="productTitle">افزودن محصول</h2>
 
-<button
-class="close"
-onclick="closeModal('productModal')"
->
-×
-</button>
+<button class="close" onclick="closeModal('productModal')">×</button>
 
 </div>
 
 <input type="hidden" id="productId">
 
-<div
-class="photoBox"
-onclick="openPhotoChooser()"
-role="button"
-tabindex="0"
->
+<div class="photoBox" onclick="openPhotoChooser()">
 
 <img
 id="preview"
@@ -686,9 +645,7 @@ alt="عکس محصول"
 src=""
 >
 
-<div>
-برای انتخاب یا تغییر عکس، روی این کادر بزنید
-</div>
+<div>برای انتخاب یا تغییر عکس، روی این کادر بزنید</div>
 
 </div>
 
@@ -713,11 +670,7 @@ onchange="picked(this)"
 
 <label>نام محصول</label>
 
-<input
-class="input"
-id="pn"
-placeholder="مثلاً تراورتن عباس‌آباد"
->
+<input class="input" id="pn" placeholder="مثلاً تراورتن عباس‌آباد">
 
 </div>
 
@@ -725,12 +678,7 @@ placeholder="مثلاً تراورتن عباس‌آباد"
 
 <label>قیمت فعلی</label>
 
-<input
-class="input"
-id="pp"
-type="number"
-placeholder="قیمت"
->
+<input class="input" id="pp" type="number" placeholder="قیمت">
 
 </div>
 
@@ -738,12 +686,7 @@ placeholder="قیمت"
 
 <label>قیمت قبل از تخفیف — اختیاری</label>
 
-<input
-class="input"
-id="po"
-type="number"
-placeholder="فقط اگر تخفیف دارد"
->
+<input class="input" id="po" type="number" placeholder="فقط اگر تخفیف دارد">
 
 </div>
 
@@ -751,11 +694,7 @@ placeholder="فقط اگر تخفیف دارد"
 
 <label>دسته‌بندی</label>
 
-<select
-class="input"
-id="pc"
->
-</select>
+<select class="input" id="pc"></select>
 
 </div>
 
@@ -772,17 +711,11 @@ placeholder="توضیحات محصول و کاربرد آن"
 
 </div>
 
-<button
-class="btn green wide"
-onclick="saveProduct()"
->
+<button class="btn green wide" onclick="saveProduct()">
 ذخیره محصول
 </button>
 
-<button
-class="btn cancel"
-onclick="closeModal('productModal')"
->
+<button class="btn cancel" onclick="closeModal('productModal')">
 انصراف
 </button>
 
@@ -790,7 +723,7 @@ onclick="closeModal('productModal')"
 </div>
 
 
-<!-- PHOTO CHOOSER -->
+<!-- انتخاب عکس -->
 
 <div class="modal" id="photoModal">
 
@@ -798,24 +731,15 @@ onclick="closeModal('productModal')"
 
 <h2>انتخاب عکس محصول</h2>
 
-<button
-class="btn gold wide"
-onclick="chooseCamera()"
->
+<button class="btn gold wide" onclick="chooseCamera()">
 📷 دوربین
 </button>
 
-<button
-class="btn soft wide"
-onclick="chooseGallery()"
->
+<button class="btn soft wide" onclick="chooseGallery()">
 🖼️ گالری
 </button>
 
-<button
-class="btn cancel"
-onclick="closeModal('photoModal')"
->
+<button class="btn cancel" onclick="closeModal('photoModal')">
 انصراف
 </button>
 
@@ -823,18 +747,9 @@ onclick="closeModal('photoModal')"
 </div>
 
 
-<!-- PHOTO VIEW -->
+<!-- عکس بزرگ -->
 
-<div
-class="modal"
-id="viewPhotoModal"
-onclick="closeModal('viewPhotoModal')"
->
-
-<div
-style="max-width:95vw;max-height:90vh"
-onclick="event.stopPropagation()"
->
+<div class="modal" id="viewPhotoModal" onclick="closeModal('viewPhotoModal')">
 
 <img
 id="largePhoto"
@@ -848,10 +763,9 @@ object-fit:contain
 >
 
 </div>
-</div>
 
 
-<!-- SETTINGS -->
+<!-- تنظیمات -->
 
 <div class="modal" id="settingsModal">
 
@@ -861,12 +775,7 @@ object-fit:contain
 
 <h2>⚙ تنظیمات فروشگاه</h2>
 
-<button
-class="close"
-onclick="closeModal('settingsModal')"
->
-×
-</button>
+<button class="close" onclick="closeModal('settingsModal')">×</button>
 
 </div>
 
@@ -874,26 +783,15 @@ onclick="closeModal('settingsModal')"
 
 <label>شماره تماس مدیریت</label>
 
-<input
-class="input"
-id="phone"
-type="tel"
-placeholder="مثلاً 0912..."
->
+<input class="input" id="phone" type="tel">
 
 </div>
 
-<button
-class="btn green wide"
-onclick="saveSettings()"
->
+<button class="btn green wide" onclick="saveSettings()">
 ذخیره شماره
 </button>
 
-<button
-class="btn cancel"
-onclick="closeModal('settingsModal')"
->
+<button class="btn cancel" onclick="closeModal('settingsModal')">
 انصراف
 </button>
 
@@ -901,7 +799,7 @@ onclick="closeModal('settingsModal')"
 </div>
 
 
-<!-- CALCULATOR -->
+<!-- ماشین حساب -->
 
 <div class="modal" id="calcModal">
 
@@ -911,12 +809,7 @@ onclick="closeModal('settingsModal')"
 
 <h2>📐 محاسبات سنگ</h2>
 
-<button
-class="close"
-onclick="closeModal('calcModal')"
->
-×
-</button>
+<button class="close" onclick="closeModal('calcModal')">×</button>
 
 </div>
 
@@ -949,35 +842,21 @@ onclick="closeModal('calcModal')"
 
 </div>
 
-<button
-class="btn gold wide"
-onclick="calcArea()"
->
+<button class="btn gold wide" onclick="calcArea()">
 محاسبه مترمربع
 </button>
 
-<div
-class="result"
-id="areaResult"
->
+<div class="result" id="areaResult">
 نتیجه اینجا نمایش داده می‌شود.
 </div>
 
-<div
-class="calcgrid"
-style="margin-top:10px"
->
+<div class="calcgrid">
 
 <div class="field">
 
 <label>مترمربع</label>
 
-<input
-class="input"
-id="M2"
-type="number"
-step=".01"
->
+<input class="input" id="M2" type="number" step=".01">
 
 </div>
 
@@ -985,36 +864,19 @@ step=".01"
 
 <label>عرض سنگ به متر</label>
 
-<input
-class="input"
-id="Width"
-type="number"
-step=".01"
-placeholder="مثلاً 0.60"
->
+<input class="input" id="Width" type="number" step=".01">
 
 </div>
 
 </div>
 
-<button
-class="btn soft wide"
-onclick="linear()"
->
+<button class="btn soft wide" onclick="linear()">
 تبدیل به متر طول
 </button>
 
-<div
-class="result"
-id="linearResult"
->
-—
-</div>
+<div class="result" id="linearResult">—</div>
 
-<button
-class="btn cancel"
-onclick="closeModal('calcModal')"
->
+<button class="btn cancel" onclick="closeModal('calcModal')">
 بستن
 </button>
 
@@ -1036,72 +898,69 @@ let data =
 JSON.parse(localStorage.getItem(PRODUCTS_KEY) || "null") || [];
 
 
-/* =========================
-   دسته بندی ها
-========================= */
+/* دسته بندی ها */
 
 const categories = [
 
 {
 name:"صفحه کابینت",
 desc:"صفحه‌های سنگی لوکس برای آشپزخانه",
-image:"./images/page-kabinet.jpg"
+image:"./images/page-kabinet.jpg.jpg"
 },
 
 {
 name:"سنگ پله",
 desc:"سنگ پله و پیشانی با کیفیت",
-image:"./images/pelleh.jpg"
+image:"./images/pelleh.jpg.jpg"
 },
 
 {
 name:"تراورتن",
 desc:"سنگ‌های طبیعی مناسب نما",
-image:"./images/travertine.jpg"
+image:"./images/travertine.jpg.jpg"
 },
 
 {
 name:"مرمریت",
 desc:"مرمریت‌های لوکس و خاص",
-image:"./images/marmerit.jpg"
+image:"./images/marmerit.jpg.jpg"
 },
 
 {
 name:"سنگ فرش",
 desc:"سنگ‌های مناسب کف و محوطه",
-image:"./images/farsh.jpg"
+image:"./images/farsh.jpg.jpg"
 },
 
 {
 name:"کریستال و گرانیت",
 desc:"سنگ‌های مقاوم و لوکس",
-image:"./images/crystal-granite.jpg"
+image:"./images/crystal-granite.jpg.jpg"
 },
 
 {
 name:"المان و زیباسازی",
 desc:"المان‌های سنگی و زیباسازی",
-image:"./images/elamanzibasaazi.jpg"
+image:"./images/elamanzibasaazi.jpg.jpg"
 }
 
 ];
 
 
-/* =========================
-   ابزارها
-========================= */
-
 function $(id){
  return document.getElementById(id);
 }
+
 
 function persist(){
  localStorage.setItem(PRODUCTS_KEY,JSON.stringify(data));
 }
 
+
 function isAdmin(){
  return sessionStorage.getItem("verona_admin")==="1";
 }
+
 
 function updateAdminUI(){
 
@@ -1119,23 +978,13 @@ function updateAdminUI(){
 
 }
 
+
 function closeModal(id){
  $(id).classList.remove("show");
 }
 
 
-/* =========================
-   خوش آمدگویی
-========================= */
-
-function closeWelcome(){
- sessionStorage.setItem("verona_welcome","1");
-}
-
-
-/* =========================
-   مدیریت
-========================= */
+/* مدیریت */
 
 function openAdminLogin(){
 
@@ -1153,6 +1002,7 @@ function openAdminLogin(){
  },100);
 
 }
+
 
 function loginAdmin(){
 
@@ -1176,6 +1026,7 @@ function loginAdmin(){
 
 }
 
+
 function logoutAdmin(){
 
  sessionStorage.removeItem("verona_admin");
@@ -1187,9 +1038,7 @@ function logoutAdmin(){
 }
 
 
-/* =========================
-   دسته بندی
-========================= */
+/* دسته بندی */
 
 function renderCats(){
 
@@ -1201,10 +1050,7 @@ function renderCats(){
 
   return `
 
-  <div
-   class="cat"
-   onclick="openCategory('${escapeHtml(c.name)}')"
-  >
+  <div class="cat" onclick="openCategory('${escapeHtml(c.name)}')">
 
    <div class="cat-art">
 
@@ -1231,10 +1077,6 @@ function renderCats(){
 }
 
 
-/* =========================
-   ورود به دسته
-========================= */
-
 function openCategory(name){
 
  active=name;
@@ -1255,6 +1097,7 @@ function openCategory(name){
 
 }
 
+
 function goHome(){
 
  active="";
@@ -1270,9 +1113,7 @@ function goHome(){
 }
 
 
-/* =========================
-   محصولات
-========================= */
+/* لیست محصولات */
 
 function renderList(){
 
@@ -1324,17 +1165,11 @@ function renderList(){
    `
    <div class="actions">
 
-    <button
-     class="btn soft"
-     onclick="openProduct('${p.id}')"
-    >
+    <button class="btn soft" onclick="openProduct('${p.id}')">
      ✏️ ویرایش
     </button>
 
-    <button
-     class="btn danger"
-     onclick="deleteProduct('${p.id}')"
-    >
+    <button class="btn danger" onclick="deleteProduct('${p.id}')">
      🗑 حذف
     </button>
 
@@ -1381,37 +1216,8 @@ function renderList(){
 
 }
 
-function money(v){
 
- if(v===undefined || v===null || v==="")
-  return "تماس بگیرید";
-
- return Number(v).toLocaleString("fa-IR")+" تومان";
-
-}
-
-function placeholder(){
-
- return "data:image/svg+xml;charset=UTF-8,"+
- encodeURIComponent(`
- <svg xmlns="http://www.w3.org/2000/svg"
- width="600" height="500">
- <rect width="100%" height="100%" fill="#eee8dd"/>
- <text x="50%" y="50%"
- dominant-baseline="middle"
- text-anchor="middle"
- font-size="40">
- سنگ ورونا
- </text>
- </svg>
- `);
-
-}
-
-
-/* =========================
-   جستجوی صفحه اصلی
-========================= */
+/* جستجو */
 
 function homeSearchProducts(){
 
@@ -1436,9 +1242,7 @@ function homeSearchProducts(){
  if(!results.length){
 
   $("homeResults").innerHTML=`
-   <div class="empty">
-    محصولی پیدا نشد.
-   </div>
+   <div class="empty">محصولی پیدا نشد.</div>
   `;
 
   $("homeResults").classList.add("show");
@@ -1450,10 +1254,7 @@ function homeSearchProducts(){
 
  <div class="home-result">
 
-  <img
-   src="${p.image||placeholder()}"
-   alt="${escapeHtml(p.name)}"
-  >
+  <img src="${p.image||placeholder()}" alt="${escapeHtml(p.name)}">
 
   <div class="rinfo">
 
@@ -1461,9 +1262,7 @@ function homeSearchProducts(){
 
    <small>${money(p.price)}</small>
 
-   <p>
-    ${escapeHtml(p.description||"")}
-   </p>
+   <p>${escapeHtml(p.description||"")}</p>
 
    <button
     class="btn soft"
@@ -1483,9 +1282,7 @@ function homeSearchProducts(){
 }
 
 
-/* =========================
-   محصول جدید / ویرایش
-========================= */
+/* محصول */
 
 function openProduct(id=""){
 
@@ -1539,6 +1336,7 @@ function openProduct(id=""){
  }
 
 }
+
 
 function saveProduct(){
 
@@ -1616,9 +1414,7 @@ function saveProduct(){
 }
 
 
-/* =========================
-   حذف محصول
-========================= */
+/* حذف */
 
 function deleteProduct(id){
 
@@ -1631,9 +1427,8 @@ function deleteProduct(id){
 
  if(!p)return;
 
- if(!confirm(
-  "آیا از حذف «"+p.name+"» مطمئن هستید؟"
- ))return;
+ if(!confirm("آیا از حذف «"+p.name+"» مطمئن هستید؟"))
+  return;
 
  data=data.filter(x=>x.id!==id);
 
@@ -1645,9 +1440,7 @@ function deleteProduct(id){
 }
 
 
-/* =========================
-   عکس دوربین / گالری
-========================= */
+/* عکس */
 
 function openPhotoChooser(){
 
@@ -1657,21 +1450,22 @@ function openPhotoChooser(){
 
 }
 
+
 function chooseCamera(){
 
  closeModal("photoModal");
-
  $("camera").click();
 
 }
 
+
 function chooseGallery(){
 
  closeModal("photoModal");
-
  $("gallery").click();
 
 }
+
 
 function picked(input){
 
@@ -1694,9 +1488,7 @@ function picked(input){
 }
 
 
-/* =========================
-   مشاهده عکس بزرگ
-========================= */
+/* عکس بزرگ */
 
 function viewPhoto(id){
 
@@ -1711,9 +1503,7 @@ function viewPhoto(id){
 }
 
 
-/* =========================
-   تنظیمات
-========================= */
+/* تنظیمات */
 
 function openSettings(){
 
@@ -1730,11 +1520,10 @@ function openSettings(){
 
 }
 
+
 function saveSettings(){
 
- if(!isAdmin()){
-  return;
- }
+ if(!isAdmin())return;
 
  const phone=$("phone").value.trim();
 
@@ -1744,24 +1533,12 @@ function saveSettings(){
 
  closeModal("settingsModal");
 
- updateCallLink();
-
  alert("تنظیمات ذخیره شد.");
 
 }
 
-function updateCallLink(){
 
- const phone=
-  localStorage.getItem(PHONE_KEY) ||
-  "09140824203";
-
-}
-
-
-/* =========================
-   تماس
-========================= */
+/* تماس */
 
 function callManager(){
 
@@ -1774,15 +1551,14 @@ function callManager(){
 }
 
 
-/* =========================
-   ماشین حساب
-========================= */
+/* ماشین حساب */
 
 function openCalc(){
 
  $("calcModal").classList.add("show");
 
 }
+
 
 function calcArea(){
 
@@ -1816,6 +1592,7 @@ function calcArea(){
 
 }
 
+
 function linear(){
 
  const m2=Number($("M2").value);
@@ -1841,9 +1618,36 @@ function linear(){
 }
 
 
-/* =========================
-   پاکسازی HTML
-========================= */
+/* ابزارها */
+
+function money(v){
+
+ if(v===undefined || v===null || v==="")
+  return "تماس بگیرید";
+
+ return Number(v).toLocaleString("fa-IR")+" تومان";
+
+}
+
+
+function placeholder(){
+
+ return "data:image/svg+xml;charset=UTF-8,"+
+ encodeURIComponent(`
+ <svg xmlns="http://www.w3.org/2000/svg"
+ width="600" height="500">
+ <rect width="100%" height="100%" fill="#eee8dd"/>
+ <text x="50%" y="50%"
+ dominant-baseline="middle"
+ text-anchor="middle"
+ font-size="40">
+ سنگ ورونا
+ </text>
+ </svg>
+ `);
+
+}
+
 
 function escapeHtml(value){
 
@@ -1857,17 +1661,13 @@ function escapeHtml(value){
 }
 
 
-/* =========================
-   شروع
-========================= */
+/* شروع */
 
 document.addEventListener("DOMContentLoaded",()=>{
 
  renderCats();
 
  updateAdminUI();
-
- updateCallLink();
 
 });
 
