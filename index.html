@@ -1,9 +1,12 @@
+```html
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#173f36">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.webmanifest">
 <title>فروشگاه سنگ ورونا</title>
 
@@ -233,6 +236,22 @@ main{padding:23px 13px 100px}
  margin-top:7px
 }
 
+.cat-admin{
+ display:none;
+ gap:5px;
+ margin-top:8px
+}
+
+body.adminMode .cat-admin{
+ display:flex
+}
+
+.cat-admin button{
+ flex:1;
+ padding:6px 5px;
+ font-size:10px
+}
+
 .calc-entry{
  margin-top:20px;
  background:linear-gradient(135deg,#173f36,#2d6655);
@@ -292,7 +311,8 @@ main{padding:23px 13px 100px}
  width:100%;
  aspect-ratio:1.08;
  object-fit:cover;
- background:#eee
+ background:#eee;
+ cursor:zoom-in
 }
 
 .info{padding:12px}
@@ -424,7 +444,8 @@ main{padding:23px 13px 100px}
  padding:12px;
  text-align:center;
  background:#fffaf1;
- margin-bottom:10px
+ margin-bottom:10px;
+ cursor:pointer
 }
 
 .photoPreview{
@@ -434,6 +455,12 @@ main{padding:23px 13px 100px}
  border-radius:12px;
  background:#eee;
  margin-bottom:8px
+}
+
+.photo-buttons{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:8px
 }
 
 .calcgrid{
@@ -467,6 +494,45 @@ main{padding:23px 13px 100px}
  font-size:11px;
  line-height:1.8;
  margin-bottom:12px
+}
+
+.category-list{
+ display:flex;
+ flex-direction:column;
+ gap:8px;
+ margin-top:10px
+}
+
+.category-row{
+ display:flex;
+ align-items:center;
+ gap:7px;
+ background:#fff8ed;
+ border:1px solid #eadcc5;
+ border-radius:13px;
+ padding:9px
+}
+
+.category-row .category-name{
+ flex:1;
+ font-weight:800;
+ font-size:12px
+}
+
+.category-row button{
+ padding:7px 9px;
+ font-size:10px
+}
+
+.admin-menu{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:8px;
+ margin-top:10px
+}
+
+.admin-menu button{
+ min-height:48px
 }
 
 @media(min-width:700px){
@@ -507,6 +573,8 @@ main{padding:23px 13px 100px}
 <button class="btn soft adminOnly" onclick="openSettings()">⚙ تنظیمات</button>
 
 <button class="btn gold adminOnly" onclick="openProduct()">＋ محصول جدید</button>
+
+<button class="btn gold adminOnly" onclick="openCategoryManager()">📂 مدیریت دسته‌ها</button>
 
 </div>
 </div>
@@ -747,6 +815,79 @@ placeholder="توضیحات محصول و کاربرد آن"
 </div>
 
 
+<!-- مدیریت دسته بندی -->
+
+<div class="modal" id="categoryManagerModal">
+
+<div class="box">
+
+<div class="modal-head">
+
+<h2>📂 مدیریت دسته‌بندی‌ها</h2>
+
+<button class="close" onclick="closeModal('categoryManagerModal')">×</button>
+
+</div>
+
+<div class="login-info">
+از این بخش می‌توانید دسته‌بندی‌ها را اضافه، ویرایش یا حذف کنید.
+اگر دسته‌ای محصول داشته باشد، برای جلوگیری از گم‌شدن محصولات حذف نمی‌شود.
+</div>
+
+<button class="btn gold wide" onclick="openCategoryForm()">
+＋ افزودن دسته‌بندی جدید
+</button>
+
+<div class="category-list" id="categoryManagerList"></div>
+
+<button class="btn cancel" onclick="closeModal('categoryManagerModal')">
+بستن
+</button>
+
+</div>
+</div>
+
+
+<!-- افزودن / ویرایش دسته -->
+
+<div class="modal" id="categoryFormModal">
+
+<div class="box">
+
+<div class="modal-head">
+
+<h2 id="categoryFormTitle">افزودن دسته‌بندی</h2>
+
+<button class="close" onclick="closeModal('categoryFormModal')">×</button>
+
+</div>
+
+<input type="hidden" id="categoryOldName">
+
+<div class="field">
+
+<label>نام دسته‌بندی</label>
+
+<input
+class="input"
+id="categoryName"
+placeholder="مثلاً سنگ کف"
+>
+
+</div>
+
+<button class="btn green wide" onclick="saveCategory()">
+ذخیره دسته‌بندی
+</button>
+
+<button class="btn cancel" onclick="closeModal('categoryFormModal')">
+انصراف
+</button>
+
+</div>
+</div>
+
+
 <!-- عکس بزرگ -->
 
 <div class="modal" id="viewPhotoModal" onclick="closeModal('viewPhotoModal')">
@@ -889,6 +1030,7 @@ object-fit:contain
 const ADMIN_PASSWORD = "4450";
 
 const PRODUCTS_KEY = "verona_products";
+const CATEGORIES_KEY = "verona_categories";
 const PHONE_KEY = "verona_phone";
 
 let active = "";
@@ -898,9 +1040,9 @@ let data =
 JSON.parse(localStorage.getItem(PRODUCTS_KEY) || "null") || [];
 
 
-/* دسته بندی ها */
+/* دسته های پیش فرض */
 
-const categories = [
+const defaultCategories = [
 
 {
 name:"صفحه کابینت",
@@ -947,13 +1089,47 @@ image:"./images/elamanzibasaazi.jpg.jpg"
 ];
 
 
+/*
+ اگر قبلاً دسته بندی ذخیره شده باشد،
+ همان استفاده می‌شود.
+ در غیر این صورت دسته های اصلی ایجاد می‌شوند.
+*/
+
+let categories =
+JSON.parse(localStorage.getItem(CATEGORIES_KEY) || "null");
+
+if(!Array.isArray(categories) || !categories.length){
+
+ categories = defaultCategories.map(x=>({...x}));
+
+ localStorage.setItem(
+  CATEGORIES_KEY,
+  JSON.stringify(categories)
+ );
+
+}
+
+
+/* ابزار */
+
 function $(id){
  return document.getElementById(id);
 }
 
 
 function persist(){
- localStorage.setItem(PRODUCTS_KEY,JSON.stringify(data));
+ localStorage.setItem(
+  PRODUCTS_KEY,
+  JSON.stringify(data)
+ );
+}
+
+
+function persistCategories(){
+ localStorage.setItem(
+  CATEGORIES_KEY,
+  JSON.stringify(categories)
+ );
 }
 
 
@@ -980,7 +1156,11 @@ function updateAdminUI(){
 
 
 function closeModal(id){
- $(id).classList.remove("show");
+ const el=$(id);
+
+ if(el){
+  el.classList.remove("show");
+ }
 }
 
 
@@ -989,12 +1169,15 @@ function closeModal(id){
 function openAdminLogin(){
 
  if(isAdmin()){
+
   alert("حالت مدیریت از قبل فعال است.");
+
   return;
  }
 
  $("adminPassword").value="";
  $("adminError").textContent="";
+
  $("adminModal").classList.add("show");
 
  setTimeout(()=>{
@@ -1010,7 +1193,10 @@ function loginAdmin(){
 
  if(password===ADMIN_PASSWORD){
 
-  sessionStorage.setItem("verona_admin","1");
+  sessionStorage.setItem(
+   "verona_admin",
+   "1"
+  );
 
   closeModal("adminModal");
 
@@ -1020,7 +1206,8 @@ function loginAdmin(){
 
  }else{
 
-  $("adminError").textContent="رمز مدیریت اشتباه است.";
+  $("adminError").textContent=
+   "رمز مدیریت اشتباه است.";
 
  }
 
@@ -1029,7 +1216,9 @@ function loginAdmin(){
 
 function logoutAdmin(){
 
- sessionStorage.removeItem("verona_admin");
+ sessionStorage.removeItem(
+  "verona_admin"
+ );
 
  updateAdminUI();
 
@@ -1038,24 +1227,327 @@ function logoutAdmin(){
 }
 
 
-/* دسته بندی */
+/* =========================
+   مدیریت دسته بندی ها
+========================= */
+
+function openCategoryManager(){
+
+ if(!isAdmin()){
+
+  openAdminLogin();
+
+  return;
+ }
+
+ renderCategoryManager();
+
+ $("categoryManagerModal").classList.add("show");
+
+}
+
+
+function renderCategoryManager(){
+
+ const box=$("categoryManagerList");
+
+ if(!categories.length){
+
+  box.innerHTML=`
+   <div class="empty">
+    هنوز دسته‌بندی‌ای وجود ندارد.
+   </div>
+  `;
+
+  return;
+ }
+
+ box.innerHTML=categories.map(c=>{
+
+  const count=data.filter(
+   p=>p.category===c.name
+  ).length;
+
+  return `
+
+   <div class="category-row">
+
+    <div class="category-name">
+
+     ${escapeHtml(c.name)}
+
+     <div style="
+      font-size:9px;
+      color:#999;
+      margin-top:3px
+     ">
+      ${count} محصول
+     </div>
+
+    </div>
+
+    <button
+     class="btn soft"
+     onclick="editCategory('${encodeURIComponent(c.name)}')"
+    >
+     ✏️
+    </button>
+
+    <button
+     class="btn danger"
+     onclick="deleteCategory('${encodeURIComponent(c.name)}')"
+    >
+     🗑
+    </button>
+
+   </div>
+
+  `;
+
+ }).join("");
+
+}
+
+
+function openCategoryForm(oldName=""){
+
+ if(!isAdmin()){
+
+  openAdminLogin();
+
+  return;
+ }
+
+ $("categoryOldName").value=oldName;
+ $("categoryName").value=oldName;
+
+ if(oldName){
+
+  $("categoryFormTitle").textContent=
+   "ویرایش دسته‌بندی";
+
+ }else{
+
+  $("categoryFormTitle").textContent=
+   "افزودن دسته‌بندی";
+
+ }
+
+ $("categoryFormModal").classList.add("show");
+
+ setTimeout(()=>{
+  $("categoryName").focus();
+ },100);
+
+}
+
+
+function editCategory(encodedName){
+
+ const name=decodeURIComponent(encodedName);
+
+ openCategoryForm(name);
+
+}
+
+
+function saveCategory(){
+
+ if(!isAdmin()){
+
+  alert("دسترسی مدیریت لازم است.");
+
+  return;
+ }
+
+ const oldName=
+  $("categoryOldName").value.trim();
+
+ const newName=
+  $("categoryName").value.trim();
+
+ if(!newName){
+
+  alert("نام دسته‌بندی را وارد کنید.");
+
+  return;
+ }
+
+
+ /*
+   بررسی تکراری نبودن نام
+ */
+
+ const duplicate=categories.some(c=>
+  c.name===newName &&
+  c.name!==oldName
+ );
+
+ if(duplicate){
+
+  alert("این دسته‌بندی قبلاً وجود دارد.");
+
+  return;
+ }
+
+
+ /*
+   ویرایش دسته موجود
+ */
+
+ if(oldName){
+
+  const category=
+   categories.find(c=>c.name===oldName);
+
+  if(category){
+
+   category.name=newName;
+
+   /*
+    توضیح و عکس قبلی دسته حفظ می‌شود.
+   */
+
+  }
+
+
+  /*
+   اتصال محصولات به نام جدید
+  */
+
+  data.forEach(product=>{
+
+   if(product.category===oldName){
+
+    product.category=newName;
+
+   }
+
+  });
+
+ }else{
+
+  /*
+   افزودن دسته جدید
+  */
+
+  categories.push({
+
+   name:newName,
+
+   desc:"محصولات "+newName,
+
+   image:""
+
+  });
+
+ }
+
+
+ persistCategories();
+ persist();
+
+ closeModal("categoryFormModal");
+
+ renderCats();
+ renderCategoryManager();
+
+ alert(
+  oldName
+   ? "دسته‌بندی با موفقیت ویرایش شد."
+   : "دسته‌بندی با موفقیت اضافه شد."
+ );
+
+}
+
+
+function deleteCategory(encodedName){
+
+ if(!isAdmin()){
+
+  alert("دسترسی مدیریت لازم است.");
+
+  return;
+ }
+
+ const name=decodeURIComponent(encodedName);
+
+ const count=data.filter(
+  p=>p.category===name
+ ).length;
+
+ /*
+  جلوگیری از حذف دسته دارای محصول
+ */
+
+ if(count>0){
+
+  alert(
+   "این دسته‌بندی "+count+
+   " محصول دارد و برای جلوگیری از گم‌شدن محصولات حذف نمی‌شود.\n\n"+
+   "ابتدا محصولات این دسته را حذف یا به دسته دیگری منتقل کنید."
+  );
+
+  return;
+ }
+
+
+ if(!confirm(
+  "آیا از حذف دسته «"+name+"» مطمئن هستید؟"
+ )){
+
+  return;
+ }
+
+
+ categories=categories.filter(
+  c=>c.name!==name
+ );
+
+ persistCategories();
+
+ renderCats();
+ renderCategoryManager();
+
+ if(active===name){
+
+  goHome();
+
+ }
+
+ alert("دسته‌بندی حذف شد.");
+
+}
+
+
+/* =========================
+   نمایش دسته ها
+========================= */
 
 function renderCats(){
 
- $("cats").innerHTML=categories.map(c=>{
+ $("cats").innerHTML=
+ categories.map(c=>{
 
   const count=data.filter(
    x=>x.category===c.name
   ).length;
 
+  const image=
+   c.image ||
+   placeholder();
+
   return `
 
-  <div class="cat" onclick="openCategory('${escapeHtml(c.name)}')">
+  <div
+   class="cat"
+   onclick="openCategory('${encodeURIComponent(c.name)}')"
+  >
 
    <div class="cat-art">
 
     <img
-     src="${c.image}"
+     src="${image}"
      alt="${escapeHtml(c.name)}"
      onerror="this.style.display='none';this.parentElement.innerHTML='<span style=&quot;font-size:45px&quot;>🪨</span>'"
     >
@@ -1064,9 +1556,34 @@ function renderCats(){
 
    <b>${escapeHtml(c.name)}</b>
 
-   <small>${escapeHtml(c.desc)}</small>
+   <small>
+    ${escapeHtml(c.desc||"")}
+   </small>
 
-   <small>${count} محصول</small>
+   <small>
+    ${count} محصول
+   </small>
+
+   <div
+    class="cat-admin"
+    onclick="event.stopPropagation()"
+   >
+
+    <button
+     class="btn soft"
+     onclick="editCategory('${encodeURIComponent(c.name)}')"
+    >
+     ✏️ ویرایش
+    </button>
+
+    <button
+     class="btn danger"
+     onclick="deleteCategory('${encodeURIComponent(c.name)}')"
+    >
+     🗑 حذف
+    </button>
+
+   </div>
 
   </div>
 
@@ -1077,11 +1594,15 @@ function renderCats(){
 }
 
 
-function openCategory(name){
+function openCategory(encodedName){
+
+ const name=
+  decodeURIComponent(encodedName);
 
  active=name;
 
  $("home").style.display="none";
+
  $("list").style.display="block";
 
  $("listTitle").textContent=name;
@@ -1103,6 +1624,7 @@ function goHome(){
  active="";
 
  $("list").style.display="none";
+
  $("home").style.display="block";
 
  window.scrollTo({
@@ -1113,7 +1635,9 @@ function goHome(){
 }
 
 
-/* لیست محصولات */
+/* =========================
+   لیست محصولات
+========================= */
 
 function renderList(){
 
@@ -1121,62 +1645,107 @@ function renderList(){
   x=>x.category===active
  );
 
- const q=($("search").value||"")
+ const q=
+  ($("search").value||"")
   .trim()
   .toLowerCase();
 
  if(q){
 
   list=list.filter(x=>
-   String(x.name||"").toLowerCase().includes(q) ||
-   String(x.description||"").toLowerCase().includes(q) ||
-   String(x.price||"").includes(q)
+   String(x.name||"")
+    .toLowerCase()
+    .includes(q) ||
+
+   String(x.description||"")
+    .toLowerCase()
+    .includes(q) ||
+
+   String(x.price||"")
+    .includes(q)
   );
 
  }
 
+
  list.sort((a,b)=>
-  (b.createdAt||0)-(a.createdAt||0)
+  (b.createdAt||0)-
+  (a.createdAt||0)
  );
+
 
  if(!list.length){
 
   $("cards").innerHTML=`
+
    <div class="empty">
+
     هنوز محصولی در این دسته ثبت نشده است.
+
+    ${
+     isAdmin()
+      ?
+      `<br>
+       <button
+        class="btn gold"
+        style="margin-top:10px"
+        onclick="openProduct()"
+       >
+        ＋ افزودن اولین محصول
+       </button>`
+      :
+      ""
+    }
+
    </div>
+
   `;
 
   return;
+
  }
 
- $("cards").innerHTML=list.map(p=>{
 
-  const oldPrice =
+ $("cards").innerHTML=
+ list.map(p=>{
+
+  const oldPrice=
    p.oldPrice &&
-   Number(p.oldPrice)>Number(p.price)
+   Number(p.oldPrice)>
+   Number(p.price)
    ?
-   `<span class="oldprice">${money(p.oldPrice)}</span>`
+   `<span class="oldprice">
+     ${money(p.oldPrice)}
+    </span>`
    :
    "";
 
-  const actions=isAdmin()
-   ?
-   `
-   <div class="actions">
 
-    <button class="btn soft" onclick="openProduct('${p.id}')">
-     ✏️ ویرایش
-    </button>
+  const actions=
+   isAdmin()
+    ?
+    `
+    <div class="actions">
 
-    <button class="btn danger" onclick="deleteProduct('${p.id}')">
-     🗑 حذف
-    </button>
+     <button
+      class="btn soft"
+      onclick="openProduct('${p.id}')"
+     >
+      ✏️ ویرایش
+     </button>
 
-   </div>
-   `
-   :
-   "";
+     <button
+      class="btn danger"
+      onclick="deleteProduct('${p.id}')"
+     >
+      🗑 حذف
+     </button>
+
+    </div>
+    `
+    :
+    "";
+
 
   return `
 
@@ -1187,6 +1756,7 @@ function renderList(){
     src="${p.image||placeholder()}"
     alt="${escapeHtml(p.name)}"
     onclick="viewPhoto('${p.id}')"
+    onerror="this.src=placeholder()"
    >
 
    <div class="info">
@@ -1217,56 +1787,89 @@ function renderList(){
 }
 
 
-/* جستجو */
+/* =========================
+   جستجوی صفحه اصلی
+========================= */
 
 function homeSearchProducts(){
 
- const q=($("homeSearch").value||"")
+ const q=
+  ($("homeSearch").value||"")
   .trim()
   .toLowerCase();
 
  if(!q){
 
-  $("homeResults").classList.remove("show");
+  $("homeResults")
+   .classList
+   .remove("show");
+
   $("homeResults").innerHTML="";
+
   return;
 
  }
 
+
  const results=data.filter(x=>
-  String(x.name||"").toLowerCase().includes(q) ||
-  String(x.description||"").toLowerCase().includes(q) ||
-  String(x.price||"").includes(q)
+  String(x.name||"")
+   .toLowerCase()
+   .includes(q) ||
+
+  String(x.description||"")
+   .toLowerCase()
+   .includes(q) ||
+
+  String(x.price||"")
+   .includes(q)
  );
+
 
  if(!results.length){
 
   $("homeResults").innerHTML=`
-   <div class="empty">محصولی پیدا نشد.</div>
+   <div class="empty">
+    محصولی پیدا نشد.
+   </div>
   `;
 
-  $("homeResults").classList.add("show");
+  $("homeResults")
+   .classList
+   .add("show");
+
   return;
 
  }
 
- $("homeResults").innerHTML=results.map(p=>`
+
+ $("homeResults").innerHTML=
+ results.map(p=>`
 
  <div class="home-result">
 
-  <img src="${p.image||placeholder()}" alt="${escapeHtml(p.name)}">
+  <img
+   src="${p.image||placeholder()}"
+   alt="${escapeHtml(p.name)}"
+   onerror="this.src=placeholder()"
+  >
 
   <div class="rinfo">
 
-   <b>${escapeHtml(p.name)}</b>
+   <b>
+    ${escapeHtml(p.name)}
+   </b>
 
-   <small>${money(p.price)}</small>
+   <small>
+    ${money(p.price)}
+   </small>
 
-   <p>${escapeHtml(p.description||"")}</p>
+   <p>
+    ${escapeHtml(p.description||"")}
+   </p>
 
    <button
     class="btn soft"
-    onclick="openCategory('${escapeHtml(p.category)}')"
+    onclick="openCategory('${encodeURIComponent(p.category)}')"
    >
     مشاهده
    </button>
@@ -1277,61 +1880,105 @@ function homeSearchProducts(){
 
  `).join("");
 
- $("homeResults").classList.add("show");
+
+ $("homeResults")
+  .classList
+  .add("show");
 
 }
 
 
-/* محصول */
+/* =========================
+   محصول
+========================= */
 
 function openProduct(id=""){
 
  if(!isAdmin()){
+
   openAdminLogin();
+
   return;
  }
 
- $("productModal").classList.add("show");
+
+ $("productModal")
+  .classList
+  .add("show");
+
 
  $("productId").value="";
  $("pn").value="";
  $("pp").value="";
  $("po").value="";
  $("pd").value="";
+
  currentPhoto="";
 
- $("pc").innerHTML=categories.map(c=>
-  `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`
- ).join("");
 
- if(active){
+ /*
+  فقط دسته های فعلی را نمایش بده
+ */
+
+ $("pc").innerHTML=
+  categories.map(c=>
+   `
+   <option value="${escapeHtml(c.name)}">
+    ${escapeHtml(c.name)}
+   </option>
+   `
+  ).join("");
+
+
+ if(active &&
+    categories.some(c=>c.name===active)){
+
   $("pc").value=active;
+
  }
+
 
  $("preview").src=placeholder();
 
+
  if(id){
 
-  const p=data.find(x=>x.id===id);
+  const p=
+   data.find(x=>x.id===id);
+
 
   if(!p)return;
 
-  $("productTitle").textContent="ویرایش محصول";
+
+  $("productTitle")
+   .textContent="ویرایش محصول";
+
 
   $("productId").value=p.id;
+
   $("pn").value=p.name||"";
+
   $("pp").value=p.price||"";
+
   $("po").value=p.oldPrice||"";
+
   $("pd").value=p.description||"";
+
   $("pc").value=p.category||"";
+
 
   currentPhoto=p.image||"";
 
-  $("preview").src=currentPhoto||placeholder();
+
+  $("preview").src=
+   currentPhoto||
+   placeholder();
+
 
  }else{
 
-  $("productTitle").textContent="افزودن محصول";
+  $("productTitle")
+   .textContent="افزودن محصول";
 
  }
 
@@ -1341,42 +1988,92 @@ function openProduct(id=""){
 function saveProduct(){
 
  if(!isAdmin()){
+
   alert("ابتدا وارد مدیریت شوید.");
+
   return;
  }
 
- const id=$("productId").value;
 
- const name=$("pn").value.trim();
- const price=$("pp").value;
- const oldPrice=$("po").value;
- const category=$("pc").value;
- const description=$("pd").value.trim();
+ const id=
+  $("productId").value;
+
+
+ const name=
+  $("pn").value.trim();
+
+ const price=
+  $("pp").value;
+
+ const oldPrice=
+  $("po").value;
+
+ const category=
+  $("pc").value;
+
+ const description=
+  $("pd").value.trim();
+
 
  if(!name){
+
   alert("نام محصول را وارد کنید.");
+
   return;
+
  }
 
+
  if(!category){
+
   alert("دسته‌بندی را انتخاب کنید.");
+
   return;
+
  }
+
+
+ /*
+  اطمینان از وجود دسته
+ */
+
+ if(!categories.some(c=>c.name===category)){
+
+  alert(
+   "این دسته‌بندی دیگر وجود ندارد."
+  );
+
+  return;
+
+ }
+
 
  if(id){
 
-  const index=data.findIndex(x=>x.id===id);
+  const index=
+   data.findIndex(x=>x.id===id);
+
 
   if(index!==-1){
 
    data[index].name=name;
-   data[index].price=price;
-   data[index].oldPrice=oldPrice;
-   data[index].category=category;
-   data[index].description=description;
 
-   if(currentPhoto)
-    data[index].image=currentPhoto;
+   data[index].price=price;
+
+   data[index].oldPrice=oldPrice;
+
+   data[index].category=category;
+
+   data[index].description=
+    description;
+
+
+   if(currentPhoto){
+
+    data[index].image=
+     currentPhoto;
+
+   }
 
   }
 
@@ -1384,20 +2081,33 @@ function saveProduct(){
 
   data.push({
 
-   id:String(Date.now())+
-      Math.random().toString(16).slice(2),
+   id:
+    String(Date.now())+
+    Math.random()
+     .toString(16)
+     .slice(2),
 
    name:name,
+
    price:price,
+
    oldPrice:oldPrice,
+
    category:category,
+
    description:description,
-   image:currentPhoto||placeholder(),
-   createdAt:Date.now()
+
+   image:
+    currentPhoto||
+    placeholder(),
+
+   createdAt:
+    Date.now()
 
   });
 
  }
+
 
  persist();
 
@@ -1405,48 +2115,82 @@ function saveProduct(){
 
  renderCats();
 
+
  if(active){
+
   renderList();
+
  }
 
- alert("محصول با موفقیت ذخیره شد.");
+
+ alert(
+  id
+   ?
+   "محصول با موفقیت ویرایش شد."
+   :
+   "محصول با موفقیت اضافه شد."
+ );
 
 }
 
 
-/* حذف */
+/* =========================
+   حذف محصول
+========================= */
 
 function deleteProduct(id){
 
  if(!isAdmin()){
+
   alert("دسترسی مدیریت لازم است.");
+
   return;
+
  }
 
- const p=data.find(x=>x.id===id);
+
+ const p=
+  data.find(x=>x.id===id);
+
 
  if(!p)return;
 
- if(!confirm("آیا از حذف «"+p.name+"» مطمئن هستید؟"))
+
+ if(!confirm(
+  "آیا از حذف «"+
+  p.name+
+  "» مطمئن هستید؟"
+ )){
+
   return;
 
- data=data.filter(x=>x.id!==id);
+ }
+
+
+ data=
+  data.filter(x=>x.id!==id);
+
 
  persist();
 
  renderCats();
+
  renderList();
 
 }
 
 
-/* عکس */
+/* =========================
+   عکس محصول
+========================= */
 
 function openPhotoChooser(){
 
  if(!isAdmin())return;
 
- $("photoModal").classList.add("show");
+ $("photoModal")
+  .classList
+  .add("show");
 
 }
 
@@ -1454,6 +2198,13 @@ function openPhotoChooser(){
 function chooseCamera(){
 
  closeModal("photoModal");
+
+ /*
+  باز کردن مستقیم دوربین
+ */
+
+ $("camera").value="";
+
  $("camera").click();
 
 }
@@ -1462,6 +2213,13 @@ function chooseCamera(){
 function chooseGallery(){
 
  closeModal("photoModal");
+
+ /*
+  باز کردن گالری
+ */
+
+ $("gallery").value="";
+
  $("gallery").click();
 
 }
@@ -1469,54 +2227,108 @@ function chooseGallery(){
 
 function picked(input){
 
- const file=input.files && input.files[0];
+ const file=
+  input.files &&
+  input.files[0];
+
 
  if(!file)return;
 
- const reader=new FileReader();
+
+ /*
+  فقط فایل تصویری قبول شود
+ */
+
+ if(!file.type.startsWith("image/")){
+
+  alert(
+   "لطفاً یک فایل عکس انتخاب کنید."
+  );
+
+  input.value="";
+
+  return;
+
+ }
+
+
+ const reader=
+  new FileReader();
+
 
  reader.onload=function(e){
 
-  currentPhoto=e.target.result;
+  currentPhoto=
+   e.target.result;
 
-  $("preview").src=currentPhoto;
+
+  $("preview").src=
+   currentPhoto;
 
  };
+
+
+ reader.onerror=function(){
+
+  alert(
+   "خواندن عکس انجام نشد. دوباره امتحان کنید."
+  );
+
+ };
+
 
  reader.readAsDataURL(file);
 
 }
 
 
-/* عکس بزرگ */
+/* =========================
+   عکس بزرگ
+========================= */
 
 function viewPhoto(id){
 
- const p=data.find(x=>x.id===id);
+ const p=
+  data.find(x=>x.id===id);
+
 
  if(!p || !p.image)return;
 
- $("largePhoto").src=p.image;
 
- $("viewPhotoModal").classList.add("show");
+ $("largePhoto").src=
+  p.image;
+
+
+ $("viewPhotoModal")
+  .classList
+  .add("show");
 
 }
 
 
-/* تنظیمات */
+/* =========================
+   تنظیمات
+========================= */
 
 function openSettings(){
 
  if(!isAdmin()){
+
   openAdminLogin();
+
   return;
+
  }
 
+
  $("phone").value=
-  localStorage.getItem(PHONE_KEY) ||
+  localStorage.getItem(PHONE_KEY)||
   "09140824203";
 
- $("settingsModal").classList.add("show");
+
+ $("settingsModal")
+  .classList
+  .add("show");
 
 }
 
@@ -1525,47 +2337,74 @@ function saveSettings(){
 
  if(!isAdmin())return;
 
- const phone=$("phone").value.trim();
+
+ const phone=
+  $("phone").value.trim();
+
 
  if(phone){
-  localStorage.setItem(PHONE_KEY,phone);
+
+  localStorage.setItem(
+   PHONE_KEY,
+   phone
+  );
+
  }
+
 
  closeModal("settingsModal");
 
- alert("تنظیمات ذخیره شد.");
+ alert(
+  "تنظیمات ذخیره شد."
+ );
 
 }
 
 
-/* تماس */
+/* =========================
+   تماس
+========================= */
 
 function callManager(){
 
  const phone=
-  localStorage.getItem(PHONE_KEY) ||
+  localStorage.getItem(PHONE_KEY)||
   "09140824203";
 
- window.location.href="tel:"+phone;
+
+ window.location.href=
+  "tel:"+phone;
 
 }
 
 
-/* ماشین حساب */
+/* =========================
+   ماشین حساب
+========================= */
 
 function openCalc(){
 
- $("calcModal").classList.add("show");
+ $("calcModal")
+  .classList
+  .add("show");
 
 }
 
 
 function calcArea(){
 
- const L=Number($("L").value);
- const W=Number($("W").value);
- const N=Number($("N").value)||1;
- const waste=Number($("Waste").value)||0;
+ const L=
+  Number($("L").value);
+
+ const W=
+  Number($("W").value);
+
+ const N=
+  Number($("N").value)||1;
+
+ const waste=
+  Number($("Waste").value)||0;
+
 
  if(!L || !W){
 
@@ -1576,18 +2415,29 @@ function calcArea(){
 
  }
 
- const base=L*W*N;
- const total=base*(1+waste/100);
 
- $("M2").value=total.toFixed(2);
+ const base=
+  L*W*N;
+
+
+ const total=
+  base*(1+waste/100);
+
+
+ $("M2").value=
+  total.toFixed(2);
+
 
  $("areaResult").innerHTML=
  `
  مساحت خالص:
- <b>${base.toFixed(2)}</b> مترمربع
+ <b>${base.toFixed(2)}</b>
+ مترمربع
  <br>
- مقدار پیشنهادی با ${waste}% پرتی:
- <b>${total.toFixed(2)}</b> مترمربع
+ مقدار پیشنهادی با ${waste}%
+ پرتی:
+ <b>${total.toFixed(2)}</b>
+ مترمربع
  `;
 
 }
@@ -1595,8 +2445,12 @@ function calcArea(){
 
 function linear(){
 
- const m2=Number($("M2").value);
- const width=Number($("Width").value);
+ const m2=
+  Number($("M2").value);
+
+ const width=
+  Number($("Width").value);
+
 
  if(!m2 || !width){
 
@@ -1607,25 +2461,51 @@ function linear(){
 
  }
 
- const length=m2/width;
+
+ const length=
+  m2/width;
+
 
  $("linearResult").innerHTML=
  `
  متر طول تقریبی:
- <b>${length.toFixed(2)}</b> متر طول
+ <b>${length.toFixed(2)}</b>
+ متر طول
  `;
 
 }
 
 
-/* ابزارها */
+/* =========================
+   ابزارها
+========================= */
 
 function money(v){
 
- if(v===undefined || v===null || v==="")
+ if(
+  v===undefined ||
+  v===null ||
+  v===""
+ ){
+
   return "تماس بگیرید";
 
- return Number(v).toLocaleString("fa-IR")+" تومان";
+ }
+
+
+ const n=
+  Number(v);
+
+
+ if(!Number.isFinite(n)){
+
+  return String(v);
+
+ }
+
+
+ return n.toLocaleString("fa-IR")
+  +" تومان";
 
 }
 
@@ -1636,13 +2516,23 @@ function placeholder(){
  encodeURIComponent(`
  <svg xmlns="http://www.w3.org/2000/svg"
  width="600" height="500">
- <rect width="100%" height="100%" fill="#eee8dd"/>
- <text x="50%" y="50%"
- dominant-baseline="middle"
- text-anchor="middle"
- font-size="40">
+
+ <rect
+  width="100%"
+  height="100%"
+  fill="#eee8dd"
+ />
+
+ <text
+  x="50%"
+  y="50%"
+  dominant-baseline="middle"
+  text-anchor="middle"
+  font-size="40"
+ >
  سنگ ورونا
  </text>
+
  </svg>
  `);
 
@@ -1661,17 +2551,23 @@ function escapeHtml(value){
 }
 
 
-/* شروع */
+/* =========================
+   شروع
+========================= */
 
-document.addEventListener("DOMContentLoaded",()=>{
+document.addEventListener(
+ "DOMContentLoaded",
+ ()=>{
 
- renderCats();
+  renderCats();
 
- updateAdminUI();
+  updateAdminUI();
 
-});
+ }
+);
 
 </script>
 
 </body>
 </html>
+```
