@@ -84,10 +84,15 @@ line-height:1.05;
 margin:0;
 }
 
+/* متن جدید و متمایز */
 .sub{
-margin:7px 0 13px;
-color:#8c6b35;
-font-weight:700;
+margin:9px 0 14px;
+font-family:Lalezar,Vazirmatn,sans-serif;
+font-size:clamp(16px,2.5vw,21px);
+font-weight:400;
+color:#a87932;
+letter-spacing:.2px;
+text-shadow:0 1px 0 #fff;
 }
 
 .actions{
@@ -542,7 +547,8 @@ font-size:39px;
 }
 
 .sub{
-font-size:12px;
+font-size:15px;
+line-height:1.8;
 margin:5px 0 10px;
 }
 
@@ -735,9 +741,7 @@ padding:7px;
 </style>
 </head>
 
-
 <body>
-
 
 <!-- ================= WELCOME ================= -->
 
@@ -767,7 +771,6 @@ onclick="openCatalog()"
 
 </div>
 
-
 <!-- ================= HEADER ================= -->
 
 <header>
@@ -779,7 +782,7 @@ onclick="openCatalog()"
 </h1>
 
 <div class="sub">
-سنگ ورونا شهرکرد | کیفیت، زیبایی و انتخاب مطمئن
+سایت مختص پرسنل این مجموعه می‌باشد
 </div>
 
 <div class="actions">
@@ -818,11 +821,9 @@ onclick="openLogin()"
 
 </header>
 
-
 <!-- ================= MAIN ================= -->
 
 <main class="wrap">
-
 
 <!-- صفحه خانه -->
 
@@ -834,7 +835,6 @@ class="search"
 placeholder="🔎 جستجو در دسته‌بندی و محصولات..."
 oninput="searchHome()"
 >
-
 
 <div class="section">
 
@@ -866,7 +866,6 @@ onclick="openCategories()"
 
 </div>
 
-
 <div class="footer">
 
 مدیریت: ولی‌الله قائدی<br>
@@ -878,7 +877,6 @@ onclick="openCategories()"
 </div>
 
 </div>
-
 
 <!-- صفحه دسته بندی -->
 
@@ -902,14 +900,12 @@ onclick="backHome()"
 
 </div>
 
-
 <input
 id="categorySearch"
 class="search"
 placeholder="🔎 جستجو در دسته‌بندی‌ها..."
 oninput="renderCategoriesPage()"
 >
-
 
 <div
 id="categories"
@@ -918,7 +914,6 @@ class="grid"
 
 </div>
 
-
 <!-- صفحه محصولات -->
 
 <div
@@ -926,9 +921,7 @@ id="categoryProducts"
 class="hidden"
 ></div>
 
-
 </main>
-
 
 <!-- ================= MODAL ================= -->
 
@@ -945,9 +938,7 @@ class="modalbox"
 
 </div>
 
-
 <div id="toast"></div>
-
 
 <!-- عکس -->
 
@@ -968,9 +959,7 @@ class="hidden"
 onchange="picked(this)"
 >
 
-
 <script>
-
 
 /* ================= DATA ================= */
 
@@ -979,7 +968,6 @@ const PRODUCTS_KEY="verona_products";
 const PHONE_KEY="verona_phone";
 
 const ADMIN_PASSWORD="4450";
-
 
 const defaultCategories=[
 
@@ -1020,7 +1008,6 @@ img:"images/elamanzibasaazi.jpg.jpg"
 
 ];
 
-
 let categories=
 JSON.parse(
 localStorage.getItem(CATEGORIES_KEY)||"null"
@@ -1028,22 +1015,21 @@ localStorage.getItem(CATEGORIES_KEY)||"null"
 ||
 defaultCategories;
 
-
 let products=
 JSON.parse(
 localStorage.getItem(PRODUCTS_KEY)||"[]"
 );
 
-
-let admin=
-sessionStorage.getItem("verona_admin")==="1";
-
+/*
+مدیریت در هر بار باز شدن صفحه از ابتدا
+غیرفعال است و فقط با وارد کردن رمز فعال می‌شود.
+*/
+let admin=false;
 
 let currentPhoto="";
 let editingProduct=null;
 let editingCategory=null;
 let selectedCategory="";
-
 
 /* ================= SAVE ================= */
 
@@ -1060,7 +1046,6 @@ JSON.stringify(products)
 );
 
 }
-
 
 /* ================= ESC ================= */
 
@@ -1079,7 +1064,6 @@ m=>({
 
 }
 
-
 /* ================= TOAST ================= */
 
 function showToast(t){
@@ -1097,7 +1081,6 @@ x.style.display="none";
 
 }
 
-
 /* ================= MODAL ================= */
 
 function openModal(html){
@@ -1110,7 +1093,6 @@ document
 
 }
 
-
 function closeModal(){
 
 document
@@ -1118,7 +1100,6 @@ document
 .classList.add("hidden");
 
 }
-
 
 /* ================= IMAGE ================= */
 
@@ -1135,7 +1116,6 @@ encodeURIComponent(
 
 }
 
-
 /* ================= WELCOME ================= */
 
 function openCatalog(){
@@ -1144,12 +1124,9 @@ document
 .getElementById("welcomeScreen")
 .classList.add("hidden");
 
-/* مستقیم ورود به دسته بندی ها */
-
 openCategories();
 
 }
-
 
 /* ================= HOME ================= */
 
@@ -1176,7 +1153,6 @@ behavior:"smooth"
 
 }
 
-
 /* ================= CATEGORIES ================= */
 
 function openCategories(){
@@ -1202,7 +1178,6 @@ behavior:"smooth"
 
 }
 
-
 function renderCategoriesPage(){
 
 const q=
@@ -1212,12 +1187,10 @@ document
 .trim()
 .toLowerCase();
 
-
 const box=
 document.getElementById("categories");
 
 box.innerHTML="";
-
 
 const filtered=
 categories.filter(c=>
@@ -1225,14 +1198,12 @@ categories.filter(c=>
 c.name.toLowerCase().includes(q)
 );
 
-
 filtered.forEach(c=>{
 
 const count=
 products.filter(
 p=>p.category===c.name
 ).length;
-
 
 box.innerHTML+=`
 
@@ -1255,7 +1226,6 @@ style="font-size:12px;color:#788"
 ${count} محصول
 </div>
 
-
 <div class="mini">
 
 <button
@@ -1274,7 +1244,6 @@ onclick="showCategory('${encodeURIComponent(c.name)}')"
 
 });
 
-
 if(!filtered.length){
 
 box.innerHTML=`
@@ -1289,7 +1258,6 @@ box.innerHTML=`
 
 }
 
-
 /* ================= CATEGORY PRODUCTS ================= */
 
 function showCategory(name){
@@ -1301,7 +1269,6 @@ decodeURIComponent(name)
 :
 name;
 
-
 document
 .getElementById("homePage")
 .classList.add("hidden");
@@ -1310,12 +1277,10 @@ document
 .getElementById("categoriesPage")
 .classList.add("hidden");
 
-
 const box=
 document.getElementById("categoryProducts");
 
 box.classList.remove("hidden");
-
 
 const list=
 products
@@ -1326,7 +1291,6 @@ p.category===selectedCategory
 (a,b)=>
 (b.createdAt||0)-(a.createdAt||0)
 );
-
 
 box.innerHTML=`
 
@@ -1344,7 +1308,6 @@ onclick="openCategories()"
 </button>
 
 </div>
-
 
 <div class="panel">
 
@@ -1364,10 +1327,8 @@ list.map(productCard).join("")
 
 `;
 
-
 /*
-اگر مدیریت وارد شده باشد،
-دکمه های ویرایش و افزودن فقط اینجا دیده می شوند.
+فقط مدیر دکمه افزودن محصول را می‌بیند.
 */
 
 if(admin){
@@ -1401,14 +1362,12 @@ panel.firstChild
 
 }
 
-
 window.scrollTo({
 top:0,
 behavior:"smooth"
 });
 
 }
-
 
 /* ================= PRODUCT CARD ================= */
 
@@ -1423,13 +1382,11 @@ src="${esc(imgSrc(p.photo))}"
 onclick="zoom('${encodeURIComponent(p.photo||"")}')"
 >
 
-
 <div class="pbody">
 
 <b>
 ${esc(p.name)}
 </b>
-
 
 <div class="price">
 
@@ -1445,11 +1402,9 @@ ${esc(p.price||"تماس بگیرید")}
 
 </div>
 
-
 <div class="desc">
 ${esc(p.description||"")}
 </div>
-
 
 ${
 admin
@@ -1486,14 +1441,12 @@ onclick="deleteProduct('${p.id}')"
 
 }
 
-
 /* ================= ZOOM ================= */
 
 function zoom(enc){
 
 const src=
 decodeURIComponent(enc);
-
 
 if(!src){
 
@@ -1502,7 +1455,6 @@ showToast("این محصول تصویر ندارد");
 return;
 
 }
-
 
 openModal(`
 
@@ -1521,7 +1473,6 @@ onclick="closeModal()"
 
 </div>
 
-
 <img
 src="${esc(src)}"
 style="
@@ -1538,24 +1489,18 @@ onclick="closeModal()"
 
 }
 
-
 /* ================================================= */
 /* ================= ADMIN ================= */
 /* ================================================= */
-
 
 /* ورود مدیریت */
 
 function openLogin(){
 
-if(admin){
-
-openAdminPanel();
-
-return;
-
-}
-
+/*
+حتی اگر قبلاً وارد مدیریت شده باشد،
+با کلیک روی مدیریت دوباره رمز درخواست می‌شود.
+*/
 
 openModal(`
 
@@ -1574,7 +1519,6 @@ onclick="closeModal()"
 
 </div>
 
-
 <div class="form">
 
 <div class="notice">
@@ -1582,15 +1526,14 @@ onclick="closeModal()"
 ویرایش دسته‌بندی‌ها و محصولات فقط برای مدیر امکان‌پذیر است.
 </div>
 
-
 <input
 id="adminPass"
 type="password"
 inputmode="numeric"
 placeholder="رمز مدیریت"
 autocomplete="off"
+onkeydown="if(event.key==='Enter')login()"
 >
-
 
 <button
 class="btn gold"
@@ -1603,8 +1546,17 @@ onclick="login()"
 
 `);
 
-}
+setTimeout(()=>{
 
+const input=
+document.getElementById("adminPass");
+
+if(input)
+input.focus();
+
+},100);
+
+}
 
 /* ورود */
 
@@ -1615,21 +1567,17 @@ document
 .getElementById("adminPass")
 .value;
 
-
 if(pass===ADMIN_PASSWORD){
 
 admin=true;
-
-sessionStorage.setItem(
-"verona_admin",
-"1"
-);
 
 closeModal();
 
 showToast(
 "ورود مدیریت با موفقیت انجام شد"
 );
+
+openAdminPanel();
 
 }else{
 
@@ -1641,10 +1589,17 @@ showToast(
 
 }
 
-
 /* پنل مدیریت */
 
 function openAdminPanel(){
+
+if(!admin){
+
+openLogin();
+
+return;
+
+}
 
 openModal(`
 
@@ -1663,14 +1618,12 @@ onclick="closeModal()"
 
 </div>
 
-
 <div class="notice">
 
 شما وارد بخش مدیریت شده‌اید.
 تمام امکانات ویرایش دسته‌بندی و محصولات فقط از این بخش در دسترس است.
 
 </div>
-
 
 <div
 class="form"
@@ -1684,7 +1637,6 @@ onclick="openCategoryManager()"
 📂 مدیریت دسته‌بندی‌ها
 </button>
 
-
 <button
 class="btn gold"
 onclick="openProductForm()"
@@ -1692,14 +1644,12 @@ onclick="openProductForm()"
 ➕ افزودن محصول
 </button>
 
-
 <button
 class="btn light"
 onclick="openProductManager()"
 >
 📦 مدیریت محصولات
 </button>
-
 
 <button
 class="btn red"
@@ -1714,7 +1664,6 @@ onclick="logout()"
 
 }
 
-
 /* مدیریت دسته بندی */
 
 function openCategoryManager(){
@@ -1727,11 +1676,9 @@ return;
 
 }
 
-
 renderCategoryManager();
 
 }
-
 
 /* نمایش دسته بندی مدیریت */
 
@@ -1744,7 +1691,6 @@ openLogin();
 return;
 
 }
-
 
 openModal(`
 
@@ -1763,7 +1709,6 @@ onclick="openAdminPanel()"
 
 </div>
 
-
 <button
 class="btn gold"
 onclick="openCategoryForm()"
@@ -1771,7 +1716,6 @@ style="margin-bottom:13px"
 >
 ➕ افزودن دسته جدید
 </button>
-
 
 ${categories.map(c=>`
 
@@ -1791,14 +1735,12 @@ border-radius:8px;
 ${esc(c.name)}
 </div>
 
-
 <button
 class="btn light"
 onclick="editCategory('${encodeURIComponent(c.name)}')"
 >
 ویرایش
 </button>
-
 
 <button
 class="btn red"
@@ -1815,7 +1757,6 @@ onclick="deleteCategory('${encodeURIComponent(c.name)}')"
 
 }
 
-
 /* فرم دسته */
 
 function openCategoryForm(oldName=""){
@@ -1828,7 +1769,6 @@ return;
 
 }
 
-
 editingCategory=
 oldName
 ?
@@ -1836,12 +1776,10 @@ decodeURIComponent(oldName)
 :
 null;
 
-
 const c=
 categories.find(
 x=>x.name===editingCategory
 )||{};
-
 
 openModal(`
 
@@ -1860,7 +1798,6 @@ onclick="renderCategoryManager()"
 
 </div>
 
-
 <div class="form">
 
 <input
@@ -1869,13 +1806,11 @@ placeholder="نام دسته"
 value="${esc(c.name||"")}"
 >
 
-
 <input
 id="catImg"
 placeholder="آدرس تصویر"
 value="${esc(c.img||"")}"
 >
-
 
 <button
 class="btn gold"
@@ -1889,7 +1824,6 @@ onclick="saveCategory()"
 `);
 
 }
-
 
 /* ویرایش دسته */
 
@@ -1907,7 +1841,6 @@ openCategoryForm(n);
 
 }
 
-
 /* ذخیره دسته */
 
 function saveCategory(){
@@ -1920,13 +1853,11 @@ return;
 
 }
 
-
 const name=
 document
 .getElementById("catName")
 .value
 .trim();
-
 
 const img=
 document
@@ -1935,7 +1866,6 @@ document
 .trim()
 ||
 "images/elamanzibasaazi.jpg.jpg";
-
 
 if(!name){
 
@@ -1946,7 +1876,6 @@ showToast(
 return;
 
 }
-
 
 if(
 categories.some(
@@ -1964,7 +1893,6 @@ return;
 
 }
 
-
 if(editingCategory){
 
 categories=
@@ -1976,7 +1904,6 @@ c.name===editingCategory
 :
 c
 );
-
 
 products=
 products.map(
@@ -1997,7 +1924,6 @@ img
 
 }
 
-
 save();
 
 editingCategory=null;
@@ -2009,7 +1935,6 @@ showToast(
 );
 
 }
-
 
 /* حذف دسته */
 
@@ -2023,10 +1948,8 @@ return;
 
 }
 
-
 const name=
 decodeURIComponent(n);
-
 
 if(
 products.some(
@@ -2042,25 +1965,21 @@ return;
 
 }
 
-
 if(
 !confirm("این دسته حذف شود؟")
 )
 return;
-
 
 categories=
 categories.filter(
 c=>c.name!==name
 );
 
-
 save();
 
 renderCategoryManager();
 
 }
-
 
 /* ================================================= */
 /* ================= PRODUCT MANAGEMENT ============= */
@@ -2075,7 +1994,6 @@ openLogin();
 return;
 
 }
-
 
 openModal(`
 
@@ -2094,7 +2012,6 @@ onclick="openAdminPanel()"
 
 </div>
 
-
 <button
 class="btn gold"
 onclick="openProductForm()"
@@ -2102,7 +2019,6 @@ style="margin-bottom:13px"
 >
 ➕ افزودن محصول
 </button>
-
 
 ${
 products.length
@@ -2120,7 +2036,6 @@ object-fit:cover;
 border-radius:8px;
 "
 >
-
 
 <div class="admin-item-name">
 
@@ -2140,14 +2055,12 @@ ${esc(p.category)}
 
 </div>
 
-
 <button
 class="btn light"
 onclick="editProduct('${p.id}')"
 >
 ویرایش
 </button>
-
 
 <button
 class="btn red"
@@ -2171,7 +2084,6 @@ onclick="deleteProductFromManager('${p.id}')"
 
 }
 
-
 /* فرم محصول */
 
 function openProductForm(id=null){
@@ -2184,7 +2096,6 @@ return;
 
 }
 
-
 editingProduct=
 id
 ?
@@ -2194,14 +2105,11 @@ p=>p.id===id
 :
 null;
 
-
 currentPhoto=
 editingProduct?.photo||"";
 
-
 const p=
 editingProduct||{};
-
 
 openModal(`
 
@@ -2220,16 +2128,13 @@ onclick="openAdminPanel()"
 
 </div>
 
-
 <div class="form">
-
 
 <input
 id="pName"
 placeholder="نام محصول"
 value="${esc(p.name||"")}"
 >
-
 
 <div class="row">
 
@@ -2239,7 +2144,6 @@ placeholder="قیمت"
 value="${esc(p.price||"")}"
 >
 
-
 <input
 id="pOld"
 placeholder="قیمت قبلی - اختیاری"
@@ -2247,7 +2151,6 @@ value="${esc(p.oldPrice||"")}"
 >
 
 </div>
-
 
 <select id="pCat">
 
@@ -2263,17 +2166,14 @@ ${esc(c.name)}
 
 </select>
 
-
 <textarea
 id="pDesc"
 placeholder="توضیحات و کاربرد محصول"
 >${esc(p.description||"")}</textarea>
 
-
 <div class="notice">
 عکس محصول را با دوربین یا گالری انتخاب کنید.
 </div>
-
 
 <div
 class="actions"
@@ -2287,7 +2187,6 @@ onclick="document.getElementById('camera').click()"
 📷 دوربین
 </button>
 
-
 <button
 class="btn light"
 onclick="document.getElementById('gallery').click()"
@@ -2296,7 +2195,6 @@ onclick="document.getElementById('gallery').click()"
 </button>
 
 </div>
-
 
 <div id="photoPreview">
 
@@ -2320,7 +2218,6 @@ border-radius:10px;
 
 </div>
 
-
 <button
 class="btn gold"
 onclick="saveProduct()"
@@ -2328,13 +2225,11 @@ onclick="saveProduct()"
 ذخیره محصول
 </button>
 
-
 </div>
 
 `);
 
 }
-
 
 /* انتخاب عکس */
 
@@ -2352,31 +2247,25 @@ return;
 
 }
 
-
 const f=
 input.files &&
 input.files[0];
 
-
 if(!f)
 return;
 
-
 const r=
 new FileReader();
-
 
 r.onload=e=>{
 
 currentPhoto=
 e.target.result;
 
-
 const x=
 document.getElementById(
 "photoPreview"
 );
-
 
 if(x){
 
@@ -2398,13 +2287,11 @@ border-radius:10px;
 
 };
 
-
 r.readAsDataURL(f);
 
 input.value="";
 
 }
-
 
 /* ذخیره محصول */
 
@@ -2418,13 +2305,11 @@ return;
 
 }
 
-
 const name=
 document
 .getElementById("pName")
 .value
 .trim();
-
 
 if(!name){
 
@@ -2435,7 +2320,6 @@ showToast(
 return;
 
 }
-
 
 const data={
 
@@ -2476,7 +2360,6 @@ Date.now()
 
 };
 
-
 if(editingProduct){
 
 products=
@@ -2495,12 +2378,10 @@ products.push(data);
 
 }
 
-
 save();
 
 editingProduct=null;
 currentPhoto="";
-
 
 if(
 selectedCategory===data.category
@@ -2518,13 +2399,11 @@ openProductManager();
 
 }
 
-
 showToast(
 "محصول با موفقیت ذخیره شد"
 );
 
 }
-
 
 /* ویرایش محصول */
 
@@ -2542,7 +2421,6 @@ openProductForm(id);
 
 }
 
-
 /* حذف از صفحه مدیریت */
 
 function deleteProductFromManager(id){
@@ -2555,18 +2433,15 @@ return;
 
 }
 
-
 if(
 !confirm("این محصول حذف شود؟")
 )
 return;
 
-
 products=
 products.filter(
 p=>p.id!==id
 );
-
 
 save();
 
@@ -2577,7 +2452,6 @@ showToast(
 );
 
 }
-
 
 /* حذف محصول */
 
@@ -2591,18 +2465,15 @@ return;
 
 }
 
-
 if(
 !confirm("محصول حذف شود؟")
 )
 return;
 
-
 products=
 products.filter(
 p=>p.id!==id
 );
-
 
 save();
 
@@ -2616,16 +2487,11 @@ showToast(
 
 }
 
-
 /* خروج از مدیریت */
 
 function logout(){
 
 admin=false;
-
-sessionStorage.removeItem(
-"verona_admin"
-);
 
 closeModal();
 
@@ -2634,7 +2500,6 @@ showToast(
 );
 
 }
-
 
 /* ================================================= */
 /* ================= CALCULATOR ==================== */
@@ -2645,7 +2510,6 @@ function openCalculator(){
 openModal(`
 
 <div class="calculator-box">
-
 
 <div class="modalhead">
 
@@ -2662,7 +2526,6 @@ onclick="closeModal()"
 
 </div>
 
-
 <div class="calc-subtitle">
 
 محاسبات فقط بر اساس واحد «متر» انجام می‌شود.
@@ -2670,19 +2533,16 @@ onclick="closeModal()"
 
 </div>
 
-
 <div class="notice">
 
 ⚠️ نتیجه محاسبه تقریبی است و با توجه به برش، پرت، نوع اجرا و شرایط پروژه ممکن است تغییر کند.
 
 </div>
 
-
 <div
 class="form"
 style="margin-top:18px"
 >
-
 
 <div class="calc-field">
 
@@ -2708,47 +2568,6 @@ onchange="updateCalculatorFields()"
 
 </div>
 
-
-<div class="calc-field">
-
-<label class="calc-label">
-کاربری
-</label>
-
-<select
-id="calcUsage"
-class="calc-input"
->
-
-<option>
-نمای ساختمان
-</option>
-
-<option>
-کف
-</option>
-
-<option>
-پله
-</option>
-
-<option>
-سنگ فرش
-</option>
-
-<option>
-صفحه کابینت
-</option>
-
-<option>
-سایر
-</option>
-
-</select>
-
-</div>
-
-
 <div class="calc-field">
 
 <label
@@ -2769,7 +2588,6 @@ placeholder="مثلاً 25"
 
 </div>
 
-
 <div class="calc-field">
 
 <label class="calc-label">
@@ -2787,7 +2605,6 @@ placeholder="مثلاً 0.40"
 
 </div>
 
-
 <button
 class="btn gold"
 style="
@@ -2800,12 +2617,10 @@ onclick="calculateConversion()"
 محاسبه
 </button>
 
-
 <div
 id="calcResult"
 class="calc-result hidden"
 ></div>
-
 
 </div>
 
@@ -2814,7 +2629,6 @@ class="calc-result hidden"
 `);
 
 }
-
 
 /* تغییر عنوان فیلد */
 
@@ -2825,16 +2639,13 @@ document
 .getElementById("calcType")
 .value;
 
-
 const label=
 document
 .getElementById("calcAmountLabel");
 
-
 const input=
 document
 .getElementById("calcAmount");
-
 
 if(type==="areaToLength"){
 
@@ -2856,7 +2667,6 @@ input.placeholder=
 
 }
 
-
 /* محاسبه تبدیل */
 
 function calculateConversion(){
@@ -2866,20 +2676,12 @@ document
 .getElementById("calcType")
 .value;
 
-
-const usage=
-document
-.getElementById("calcUsage")
-.value;
-
-
 const amount=
 parseFloat(
 document
 .getElementById("calcAmount")
 .value
 );
-
 
 const width=
 parseFloat(
@@ -2888,11 +2690,9 @@ document
 .value
 );
 
-
 const result=
 document
 .getElementById("calcResult");
-
 
 if(
 !amount ||
@@ -2907,7 +2707,6 @@ return;
 
 }
 
-
 if(
 !width ||
 width<=0
@@ -2921,9 +2720,7 @@ return;
 
 }
 
-
 let value;
-
 
 if(type==="areaToLength"){
 
@@ -2934,13 +2731,7 @@ if(type==="areaToLength"){
 value=
 amount/width;
 
-
 result.innerHTML=`
-
-<div>
-کاربری:
-<b>${esc(usage)}</b>
-</div>
 
 <div>
 ${amount} مترمربع ÷ ${width} متر
@@ -2964,13 +2755,7 @@ ${formatNumber(value)} متر طول
 value=
 amount*width;
 
-
 result.innerHTML=`
-
-<div>
-کاربری:
-<b>${esc(usage)}</b>
-</div>
 
 <div>
 ${amount} متر طول × ${width} متر
@@ -2987,11 +2772,9 @@ ${formatNumber(value)} مترمربع
 
 }
 
-
 result.classList.remove("hidden");
 
 }
-
 
 /* عدد خوانا */
 
@@ -3001,7 +2784,6 @@ return Number(n.toFixed(3))
 .toLocaleString("fa-IR");
 
 }
-
 
 /* ================================================= */
 /* ================= SEARCH ========================= */
@@ -3015,10 +2797,8 @@ document
 .value
 .trim();
 
-
 if(!q)
 return;
-
 
 openCategories();
 
@@ -3030,7 +2810,6 @@ renderCategoriesPage();
 
 }
 
-
 /* ================================================= */
 /* ================= CONTACT ======================== */
 /* ================================================= */
@@ -3041,7 +2820,6 @@ const phone=
 localStorage.getItem(PHONE_KEY)
 ||
 "09140824203";
-
 
 openModal(`
 
@@ -3060,13 +2838,11 @@ onclick="closeModal()"
 
 </div>
 
-
 <div class="notice">
 
 برای مشاوره، استعلام قیمت و هماهنگی اندازه‌گیری با مدیریت تماس بگیرید.
 
 </div>
-
 
 <div
 class="actions"
@@ -3080,7 +2856,6 @@ href="tel:${phone}"
 >
 ☎️ ${phone}
 </a>
-
 
 <a
 class="btn light"
@@ -3097,14 +2872,13 @@ target="_blank"
 
 }
 
-
 /* ================================================= */
 /* ================= START ========================== */
 /* ================================================= */
 
 /*
-مدیریت از بیرون قابل دسترسی نیست.
-فقط دکمه مدیریت → رمز → پنل مدیریت
+مدیریت فقط از طریق دکمه مدیریت → رمز → پنل مدیریت
+در دسترس است.
 */
 
 </script>
