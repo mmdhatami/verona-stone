@@ -84,7 +84,6 @@ line-height:1.05;
 margin:0;
 }
 
-/* متن جدید و متمایز */
 .sub{
 margin:9px 0 14px;
 font-family:Lalezar,Vazirmatn,sans-serif;
@@ -325,12 +324,6 @@ min-height:100px;
 resize:vertical;
 }
 
-.form input:focus,
-.form textarea:focus,
-.form select:focus{
-border-color:var(--gold);
-}
-
 .row{
 display:grid;
 grid-template-columns:1fr 1fr;
@@ -480,11 +473,12 @@ margin:0;
 
 .page-back{
 border:0;
-border-radius:12px;
-padding:9px 14px;
+border-radius:14px;
+padding:13px 20px;
 background:#f3ecdc;
 color:var(--green);
-font-weight:700;
+font-weight:800;
+font-size:15px;
 }
 
 /* ================= ADMIN ================= */
@@ -503,6 +497,56 @@ margin-bottom:9px;
 .admin-item-name{
 flex:1;
 font-weight:700;
+}
+
+/* ================= NOTES ================= */
+
+.note-item{
+background:#fff;
+border:1px solid #eadfc9;
+border-radius:15px;
+padding:13px;
+margin-bottom:10px;
+box-shadow:0 4px 15px #173f3608;
+}
+
+.note-text{
+white-space:pre-wrap;
+line-height:1.9;
+}
+
+.note-meta{
+font-size:11px;
+color:#888;
+margin-top:8px;
+display:flex;
+justify-content:space-between;
+gap:8px;
+align-items:center;
+}
+
+.note-delete{
+border:0;
+background:#fae7e7;
+color:var(--danger);
+border-radius:8px;
+padding:5px 9px;
+font-size:11px;
+}
+
+.note-alert{
+position:fixed;
+top:18px;
+left:50%;
+transform:translateX(-50%);
+z-index:300;
+background:var(--green);
+color:#fff;
+padding:13px 20px;
+border-radius:14px;
+box-shadow:0 8px 30px #0004;
+display:none;
+font-weight:800;
 }
 
 /* ================= FOOTER ================= */
@@ -645,8 +689,8 @@ font-size:23px;
 }
 
 .page-back{
-font-size:11px;
-padding:8px 10px;
+font-size:13px;
+padding:11px 14px;
 }
 
 .modal{
@@ -802,6 +846,13 @@ onclick="openCalculator()"
 </button>
 
 <button
+class="btn"
+onclick="openNotes()"
+>
+📝 یادداشت
+</button>
+
+<button
 class="btn light"
 onclick="openContact()"
 >
@@ -824,8 +875,6 @@ onclick="openLogin()"
 <!-- ================= MAIN ================= -->
 
 <main class="wrap">
-
-<!-- صفحه خانه -->
 
 <div id="homePage">
 
@@ -878,7 +927,7 @@ onclick="openCategories()"
 
 </div>
 
-<!-- صفحه دسته بندی -->
+<!-- ================= CATEGORIES ================= -->
 
 <div
 id="categoriesPage"
@@ -914,7 +963,7 @@ class="grid"
 
 </div>
 
-<!-- صفحه محصولات -->
+<!-- ================= PRODUCTS ================= -->
 
 <div
 id="categoryProducts"
@@ -940,7 +989,14 @@ class="modalbox"
 
 <div id="toast"></div>
 
-<!-- عکس -->
+<div
+id="noteAlert"
+class="note-alert"
+>
+🔔 یادداشت جدید ثبت شد
+</div>
+
+<!-- ================= IMAGE INPUTS ================= -->
 
 <input
 id="camera"
@@ -961,11 +1017,14 @@ onchange="picked(this)"
 
 <script>
 
-/* ================= DATA ================= */
+/* ================================================= */
+/* ================= DATA =========================== */
+/* ================================================= */
 
 const CATEGORIES_KEY="verona_categories";
 const PRODUCTS_KEY="verona_products";
 const PHONE_KEY="verona_phone";
+const NOTES_SEEN_KEY="verona_seen_notes";
 
 const ADMIN_PASSWORD="4450";
 
@@ -1020,10 +1079,6 @@ JSON.parse(
 localStorage.getItem(PRODUCTS_KEY)||"[]"
 );
 
-/*
-مدیریت در هر بار باز شدن صفحه از ابتدا
-غیرفعال است و فقط با وارد کردن رمز فعال می‌شود.
-*/
 let admin=false;
 
 let currentPhoto="";
@@ -1031,7 +1086,14 @@ let editingProduct=null;
 let editingCategory=null;
 let selectedCategory="";
 
-/* ================= SAVE ================= */
+/* ================= NOTES ================= */
+
+let notes=[];
+let notesLoaded=false;
+
+/* ================================================= */
+/* ================= SAVE =========================== */
+/* ================================================= */
 
 function save(){
 
@@ -1047,7 +1109,35 @@ JSON.stringify(products)
 
 }
 
-/* ================= ESC ================= */
+/* ================================================= */
+/* ================= NORMALIZE ====================== */
+/* ================================================= */
+
+/*
+این بخش مشکل اصلی نمایش محصولات را حل می‌کند.
+
+مثلاً:
+ي / ی
+ك / ک
+فاصله‌های اضافی
+نیم‌فاصله
+*/
+
+function norm(s){
+
+return String(s??"")
+.replace(/ي/g,"ی")
+.replace(/ى/g,"ی")
+.replace(/ك/g,"ک")
+.replace(/‌/g,"")
+.replace(/\s+/g," ")
+.trim();
+
+}
+
+/* ================================================= */
+/* ================= ESC ============================ */
+/* ================================================= */
 
 function esc(s){
 
@@ -1064,7 +1154,9 @@ m=>({
 
 }
 
-/* ================= TOAST ================= */
+/* ================================================= */
+/* ================= TOAST ========================== */
+/* ================================================= */
 
 function showToast(t){
 
@@ -1077,15 +1169,19 @@ x.style.display="block";
 
 setTimeout(()=>{
 x.style.display="none";
-},2200);
+},2500);
 
 }
 
-/* ================= MODAL ================= */
+/* ================================================= */
+/* ================= MODAL ========================== */
+/* ================================================= */
 
 function openModal(html){
 
-document.getElementById("modalbox").innerHTML=html;
+document
+.getElementById("modalbox")
+.innerHTML=html;
 
 document
 .getElementById("modal")
@@ -1101,7 +1197,9 @@ document
 
 }
 
-/* ================= IMAGE ================= */
+/* ================================================= */
+/* ================= IMAGE ========================== */
+/* ================================================= */
 
 function imgSrc(p){
 
@@ -1116,7 +1214,21 @@ encodeURIComponent(
 
 }
 
-/* ================= WELCOME ================= */
+/* ================================================= */
+/* ================= CATEGORY MATCH ================= */
+/* ================================================= */
+
+function categoryProducts(categoryName){
+
+return products.filter(
+p=>norm(p.category)===norm(categoryName)
+);
+
+}
+
+/* ================================================= */
+/* ================= WELCOME ======================== */
+/* ================================================= */
 
 function openCatalog(){
 
@@ -1128,7 +1240,9 @@ openCategories();
 
 }
 
-/* ================= HOME ================= */
+/* ================================================= */
+/* ================= HOME =========================== */
+/* ================================================= */
 
 function backHome(){
 
@@ -1153,7 +1267,9 @@ behavior:"smooth"
 
 }
 
-/* ================= CATEGORIES ================= */
+/* ================================================= */
+/* ================= CATEGORIES ===================== */
+/* ================================================= */
 
 function openCategories(){
 
@@ -1188,7 +1304,8 @@ document
 .toLowerCase();
 
 const box=
-document.getElementById("categories");
+document
+.getElementById("categories");
 
 box.innerHTML="";
 
@@ -1201,9 +1318,7 @@ c.name.toLowerCase().includes(q)
 filtered.forEach(c=>{
 
 const count=
-products.filter(
-p=>p.category===c.name
-).length;
+categoryProducts(c.name).length;
 
 box.innerHTML+=`
 
@@ -1258,7 +1373,9 @@ box.innerHTML=`
 
 }
 
-/* ================= CATEGORY PRODUCTS ================= */
+/* ================================================= */
+/* ================= CATEGORY PRODUCTS ============= */
+/* ================================================= */
 
 function showCategory(name){
 
@@ -1282,11 +1399,13 @@ document.getElementById("categoryProducts");
 
 box.classList.remove("hidden");
 
+/*
+اینجا به جای مقایسه مستقیم،
+از categoryProducts استفاده می‌شود.
+*/
+
 const list=
-products
-.filter(p=>
-p.category===selectedCategory
-)
+categoryProducts(selectedCategory)
 .sort(
 (a,b)=>
 (b.createdAt||0)-(a.createdAt||0)
@@ -1318,7 +1437,7 @@ list.length
 ?
 list.map(productCard).join("")
 :
-"<div class='notice'>هنوز محصولی در این دسته ثبت نشده است.</div>"
+"<div class='notice'>ثبت محصول فقط توسط مدیر قابل انجام است.</div>"
 }
 
 </div>
@@ -1327,16 +1446,15 @@ list.map(productCard).join("")
 
 `;
 
-/*
-فقط مدیر دکمه افزودن محصول را می‌بیند.
-*/
+/* دکمه افزودن فقط برای مدیر */
 
 if(admin){
 
 const panel=
 box.querySelector(".panel");
 
-const controls=document.createElement("div");
+const controls=
+document.createElement("div");
 
 controls.className="actions";
 
@@ -1369,7 +1487,9 @@ behavior:"smooth"
 
 }
 
-/* ================= PRODUCT CARD ================= */
+/* ================================================= */
+/* ================= PRODUCT CARD ================== */
+/* ================================================= */
 
 function productCard(p){
 
@@ -1441,7 +1561,9 @@ onclick="deleteProduct('${p.id}')"
 
 }
 
-/* ================= ZOOM ================= */
+/* ================================================= */
+/* ================= ZOOM ========================== */
+/* ================================================= */
 
 function zoom(enc){
 
@@ -1490,17 +1612,10 @@ onclick="closeModal()"
 }
 
 /* ================================================= */
-/* ================= ADMIN ================= */
+/* ================= ADMIN ========================== */
 /* ================================================= */
 
-/* ورود مدیریت */
-
 function openLogin(){
-
-/*
-حتی اگر قبلاً وارد مدیریت شده باشد،
-با کلیک روی مدیریت دوباره رمز درخواست می‌شود.
-*/
 
 openModal(`
 
@@ -1558,7 +1673,7 @@ input.focus();
 
 }
 
-/* ورود */
+/* ================= LOGIN ================= */
 
 function login(){
 
@@ -1589,7 +1704,7 @@ showToast(
 
 }
 
-/* پنل مدیریت */
+/* ================= ADMIN PANEL ================= */
 
 function openAdminPanel(){
 
@@ -1664,7 +1779,9 @@ onclick="logout()"
 
 }
 
-/* مدیریت دسته بندی */
+/* ================================================= */
+/* ================= CATEGORY MANAGER ============== */
+/* ================================================= */
 
 function openCategoryManager(){
 
@@ -1679,8 +1796,6 @@ return;
 renderCategoryManager();
 
 }
-
-/* نمایش دسته بندی مدیریت */
 
 function renderCategoryManager(){
 
@@ -1757,7 +1872,9 @@ onclick="deleteCategory('${encodeURIComponent(c.name)}')"
 
 }
 
-/* فرم دسته */
+/* ================================================= */
+/* ================= CATEGORY FORM ================= */
+/* ================================================= */
 
 function openCategoryForm(oldName=""){
 
@@ -1778,8 +1895,9 @@ null;
 
 const c=
 categories.find(
-x=>x.name===editingCategory
-)||{};
+x=>norm(x.name)===norm(editingCategory)
+)
+||{};
 
 openModal(`
 
@@ -1825,7 +1943,9 @@ onclick="saveCategory()"
 
 }
 
-/* ویرایش دسته */
+/* ================================================= */
+/* ================= EDIT CATEGORY ================= */
+/* ================================================= */
 
 function editCategory(n){
 
@@ -1841,7 +1961,9 @@ openCategoryForm(n);
 
 }
 
-/* ذخیره دسته */
+/* ================================================= */
+/* ================= SAVE CATEGORY ================= */
+/* ================================================= */
 
 function saveCategory(){
 
@@ -1880,8 +2002,8 @@ return;
 if(
 categories.some(
 c=>
-c.name===name &&
-c.name!==editingCategory
+norm(c.name)===norm(name) &&
+norm(c.name)!==norm(editingCategory)
 )
 ){
 
@@ -1898,17 +2020,21 @@ if(editingCategory){
 categories=
 categories.map(
 c=>
-c.name===editingCategory
+norm(c.name)===norm(editingCategory)
 ?
 {name,img}
 :
 c
 );
 
+/*
+محصولات قبلی دسته هم همراه نام جدید تغییر می‌کنند.
+*/
+
 products=
 products.map(
 p=>
-p.category===editingCategory
+norm(p.category)===norm(editingCategory)
 ?
 {...p,category:name}
 :
@@ -1936,7 +2062,9 @@ showToast(
 
 }
 
-/* حذف دسته */
+/* ================================================= */
+/* ================= DELETE CATEGORY =============== */
+/* ================================================= */
 
 function deleteCategory(n){
 
@@ -1952,9 +2080,7 @@ const name=
 decodeURIComponent(n);
 
 if(
-products.some(
-p=>p.category===name
-)
+categoryProducts(name).length
 ){
 
 showToast(
@@ -1972,7 +2098,7 @@ return;
 
 categories=
 categories.filter(
-c=>c.name!==name
+c=>norm(c.name)!==norm(name)
 );
 
 save();
@@ -2084,7 +2210,9 @@ onclick="deleteProductFromManager('${p.id}')"
 
 }
 
-/* فرم محصول */
+/* ================================================= */
+/* ================= PRODUCT FORM ================== */
+/* ================================================= */
 
 function openProductForm(id=null){
 
@@ -2157,7 +2285,7 @@ value="${esc(p.oldPrice||"")}"
 ${categories.map(c=>`
 
 <option
-${c.name===(p.category||selectedCategory)?"selected":""}
+${norm(c.name)===norm(p.category||selectedCategory)?"selected":""}
 >
 ${esc(c.name)}
 </option>
@@ -2231,7 +2359,9 @@ onclick="saveProduct()"
 
 }
 
-/* انتخاب عکس */
+/* ================================================= */
+/* ================= PICK IMAGE ==================== */
+/* ================================================= */
 
 function picked(input){
 
@@ -2293,7 +2423,9 @@ input.value="";
 
 }
 
-/* ذخیره محصول */
+/* ================================================= */
+/* ================= SAVE PRODUCT ================== */
+/* ================================================= */
 
 function saveProduct(){
 
@@ -2384,7 +2516,7 @@ editingProduct=null;
 currentPhoto="";
 
 if(
-selectedCategory===data.category
+norm(selectedCategory)===norm(data.category)
 ){
 
 closeModal();
@@ -2405,7 +2537,9 @@ showToast(
 
 }
 
-/* ویرایش محصول */
+/* ================================================= */
+/* ================= EDIT PRODUCT ================== */
+/* ================================================= */
 
 function editProduct(id){
 
@@ -2421,7 +2555,9 @@ openProductForm(id);
 
 }
 
-/* حذف از صفحه مدیریت */
+/* ================================================= */
+/* ================= DELETE PRODUCT ================ */
+/* ================================================= */
 
 function deleteProductFromManager(id){
 
@@ -2452,8 +2588,6 @@ showToast(
 );
 
 }
-
-/* حذف محصول */
 
 function deleteProduct(id){
 
@@ -2487,7 +2621,9 @@ showToast(
 
 }
 
-/* خروج از مدیریت */
+/* ================================================= */
+/* ================= LOGOUT ======================== */
+/* ================================================= */
 
 function logout(){
 
@@ -2630,8 +2766,6 @@ class="calc-result hidden"
 
 }
 
-/* تغییر عنوان فیلد */
-
 function updateCalculatorFields(){
 
 const type=
@@ -2666,8 +2800,6 @@ input.placeholder=
 }
 
 }
-
-/* محاسبه تبدیل */
 
 function calculateConversion(){
 
@@ -2724,10 +2856,6 @@ let value;
 
 if(type==="areaToLength"){
 
-/*
-متر طول = مترمربع ÷ عرض
-*/
-
 value=
 amount/width;
 
@@ -2747,10 +2875,6 @@ ${formatNumber(value)} متر طول
 `;
 
 }else{
-
-/*
-مترمربع = متر طول × عرض
-*/
 
 value=
 amount*width;
@@ -2775,8 +2899,6 @@ ${formatNumber(value)} مترمربع
 result.classList.remove("hidden");
 
 }
-
-/* عدد خوانا */
 
 function formatNumber(n){
 
@@ -2873,13 +2995,478 @@ target="_blank"
 }
 
 /* ================================================= */
-/* ================= START ========================== */
+/* ================= PUBLIC NOTES ================== */
+/* ================================================= */
+
+function formatDate(ts){
+
+try{
+
+return new Date(ts).toLocaleString(
+"fa-IR",
+{
+year:"numeric",
+month:"2-digit",
+day:"2-digit",
+hour:"2-digit",
+minute:"2-digit"
+}
+);
+
+}catch{
+
+return "";
+
+}
+
+}
+
+/* ================= FETCH NOTES ================= */
+
+async function fetchNotes(silent=false){
+
+try{
+
+const r=
+await fetch(
+"/api/notes",
+{
+cache:"no-store"
+}
+);
+
+if(!r.ok)
+throw new Error();
+
+const d=
+await r.json();
+
+const incoming=
+Array.isArray(d.notes)
+?
+d.notes
+:
+[];
+
+/*
+یادداشت‌های جدید نسبت به لیست قبلی
+*/
+
+const oldIds=
+new Set(
+notes.map(
+n=>n.id
+)
+);
+
+const fresh=
+incoming.filter(
+n=>!oldIds.has(n.id)
+);
+
+notes=
+incoming.sort(
+(a,b)=>
+(b.createdAt||0)-
+(a.createdAt||0)
+);
+
+if(
+notesLoaded &&
+fresh.length &&
+!silent
+){
+
+playNotification();
+
+showNoteAlert();
+
+}
+
+notesLoaded=true;
+
+if(
+document.getElementById("notesList")
+){
+
+renderNotes();
+
+}
+
+}catch(e){
+
+if(!silent){
+
+showToast(
+"یادداشت‌ها فعلاً در دسترس نیستند"
+);
+
+}
+
+}
+
+}
+
+/* ================= RENDER NOTES ================= */
+
+function renderNotes(){
+
+const list=
+notes.length
+?
+notes.map(n=>`
+
+<div class="note-item">
+
+<div class="note-text">
+${esc(n.text)}
+</div>
+
+<div class="note-meta">
+
+<span>
+🕒 ${formatDate(n.createdAt)}
+</span>
+
+${
+admin
+?
+`
+<button
+class="note-delete"
+onclick="deleteNote('${encodeURIComponent(n.id)}')"
+>
+حذف
+</button>
+`
+:
+""
+}
+
+</div>
+
+</div>
+
+`).join("")
+:
+`
+<div class="notice">
+هنوز یادداشتی ثبت نشده است.
+</div>
+`;
+
+const el=
+document.getElementById("notesList");
+
+if(el)
+el.innerHTML=list;
+
+}
+
+/* ================= OPEN NOTES ================= */
+
+async function openNotes(){
+
+await fetchNotes(true);
+
+openModal(`
+
+<div class="modalhead">
+
+<h3>
+📝 یادداشت
+</h3>
+
+<button
+class="btn light"
+onclick="closeModal()"
+>
+بستن
+</button>
+
+</div>
+
+<div class="notice">
+پیامتو بزار همه ببینن
+</div>
+
+<div
+class="form"
+style="margin-top:13px"
+>
+
+<textarea
+id="noteText"
+maxlength="500"
+placeholder="پیامتو اینجا بنویس..."
+></textarea>
+
+<button
+class="btn gold"
+onclick="addNote()"
+>
+📤 ثبت یادداشت
+</button>
+
+</div>
+
+<div style="margin-top:18px">
+
+<h3 style="color:var(--green)">
+همه یادداشت‌ها
+</h3>
+
+<div id="notesList"></div>
+
+</div>
+
+`);
+
+renderNotes();
+
+}
+
+/* ================= ADD NOTE ================= */
+
+async function addNote(){
+
+const text=
+document
+.getElementById("noteText")
+?.value
+.trim();
+
+if(!text){
+
+showToast(
+"متن یادداشت را وارد کنید"
+);
+
+return;
+
+}
+
+try{
+
+const r=
+await fetch(
+"/api/notes",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+text
+})
+}
+);
+
+if(!r.ok)
+throw new Error();
+
+await fetchNotes(true);
+
+renderNotes();
+
+document
+.getElementById("noteText")
+.value="";
+
+showToast(
+"یادداشت ثبت شد"
+);
+
+}catch(e){
+
+showToast(
+"ثبت یادداشت انجام نشد"
+);
+
+}
+
+}
+
+/* ================= DELETE NOTE ================= */
+
+async function deleteNote(id){
+
+if(!admin){
+
+openLogin();
+
+return;
+
+}
+
+const real=
+decodeURIComponent(id);
+
+if(
+!confirm("این یادداشت حذف شود؟")
+)
+return;
+
+try{
+
+const r=
+await fetch(
+"/api/notes/"+
+encodeURIComponent(real),
+{
+method:"DELETE",
+headers:{
+"Authorization":
+"Bearer "+ADMIN_PASSWORD
+}
+}
+);
+
+if(!r.ok)
+throw new Error();
+
+await fetchNotes(true);
+
+renderNotes();
+
+showToast(
+"یادداشت حذف شد"
+);
+
+}catch(e){
+
+showToast(
+"حذف یادداشت انجام نشد"
+);
+
+}
+
+}
+
+/* ================= NOTE ALERT ================= */
+
+function showNoteAlert(){
+
+const x=
+document.getElementById("noteAlert");
+
+x.style.display="block";
+
+setTimeout(()=>{
+
+x.style.display="none";
+
+},3500);
+
+}
+
+/* ================= LOUD NOTIFICATION ================= */
+
+function playNotification(){
+
+try{
+
+const AudioContext=
+window.AudioContext||
+window.webkitAudioContext;
+
+if(!AudioContext)
+return;
+
+const audio=
+new AudioContext();
+
+/*
+صدای اعلان بلندتر
+*/
+
+const now=
+audio.currentTime;
+
+function beep(
+frequency,
+start,
+duration
+){
+
+const oscillator=
+audio.createOscillator();
+
+const gain=
+audio.createGain();
+
+oscillator.type="sine";
+
+oscillator.frequency.setValueAtTime(
+frequency,
+now+start
+);
+
+gain.gain.setValueAtTime(
+0.0001,
+now+start
+);
+
+gain.gain.exponentialRampToValueAtTime(
+0.95,
+now+start+0.03
+);
+
+gain.gain.exponentialRampToValueAtTime(
+0.0001,
+now+start+duration
+);
+
+oscillator.connect(gain);
+
+gain.connect(audio.destination);
+
+oscillator.start(
+now+start
+);
+
+oscillator.stop(
+now+start+duration+0.05
+);
+
+}
+
+beep(880,0,0.45);
+beep(1175,0.28,0.45);
+beep(880,0.56,0.55);
+
+setTimeout(()=>{
+
+audio.close();
+
+},1600);
+
+}catch(e){}
+
+}
+
+/* ================================================= */
+/* ================= AUTO REFRESH NOTES ============ */
 /* ================================================= */
 
 /*
-مدیریت فقط از طریق دکمه مدیریت → رمز → پنل مدیریت
-در دسترس است.
+هر ۸ ثانیه یادداشت‌ها بررسی می‌شوند.
+اگر یادداشت جدید باشد:
+صدای بلند + اعلان روی صفحه
 */
+
+setInterval(
+()=>{
+fetchNotes(false);
+},
+8000
+);
+
+/*
+اولین بار بدون اعلان
+*/
+
+fetchNotes(true);
 
 </script>
 
