@@ -1,389 +1,270 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const path = url.pathname;
 
-    /* =========================
-       NOTES API
-    ========================= */
+    const json = (data, status = 200) =>
+      new Response(JSON.stringify(data), {
+        status,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        }
+      });
 
-    if (url.pathname === "/api/notes" && request.method === "GET") {
-      return getNotes(env);
-    }
-
-    if (url.pathname === "/api/notes" && request.method === "POST") {
-      return createNote(request, env);
-    }
-
-    if (
-      url.pathname.startsWith("/api/notes/") &&
-      request.method === "DELETE"
-    ) {
-      const id = decodeURIComponent(
-        url.pathname.substring("/api/notes/".length)
-      );
-
-      return deleteNote(request, env, id);
-    }
-
-    /* =========================
-       STATIC WEBSITE
-    ========================= */
-
-    return env.ASSETS.fetch(request);
-  }
-};
-
-
-/* =========================================
-   GET ALL NOTES
-========================================= */
-
-async function getNotes(env) {
-  try {
-    const index = await env.VERONA_NOTES.get("verona:notes:index", "json");
-
-    const ids = Array.isArray(index) ? index : [];
-
-    if (ids.length === 0) {
-      return json({
-        success: true,
-        notes: []
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        }
       });
     }
 
-    const notes = [];
+    const SUPABASE_URL = env.supabase_url;
+    const SUPABASE_KEY = env.cloudflare_worker;
+    const BUCKET = "verona-media";
+    const NOTES_KEY = "verona:notes";
 
-    /*
-      هر یادداشت کلید جدا دارد.
-      این کار باعث می‌شود با اضافه شدن عکس و ویس،
-      یک KV value بزرگ و خطرناک نسازیم.
-    */
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+      return json({
+        success: false,
+        error: "Supabase environment variables are not configured."
+      }, 500);
+    }
 
-    for (const id of ids) {
+    async function getNotes() {
       try {
-        const note = await env.VERONA_NOTES.get(
-          "verona:note:" + id,
-          "json"
-        );
+        const value = await env.VERONA_NOTES.get(NOTES_KEY, "json");
+        return Array.isArray(value) ? value : [];
+      } catch {
+        return [];
+      }
+    }
 
-        if (note) {
-          notes.push(note);
+    async function saveNotes(notes) {
+      await env.VERONA_NOTES.put(NOTES_KEY, JSON.stringify(notes));
+    }
+
+    function supabaseStorageUrl(key) {
+      return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${key}`;
+    }
+
+    async function uploadMedia(key, base64, contentType) {
+      const binary = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+
+      const response = await fetch(
+        `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${key}`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${SUPABASE_KEY}`,
+            "apikey": SUPABASE_KEY,
+            "Content-Type": contentType,
+            "x-upsert": "true"
+          },
+          body: binary
         }
-      } catch (error) {
-        console.error("Could not read note:", id, error);
-      }
-    }
-
-    notes.sort(
-      (a, b) =>
-        Number(b.createdAt || 0) -
-        Number(a.createdAt || 0)
-    );
-
-    return json({
-      success: true,
-      notes
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    return json(
-      {
-        success: false,
-        error: "خطا در دریافت یادداشت‌ها"
-      },
-      500
-    );
-  }
-}
-
-
-/* =========================================
-   CREATE NOTE
-========================================= */
-
-async function createNote(request, env) {
-  try {
-    const body = await request.json();
-
-    const text = String(body.text || "").trim();
-    const image = String(body.image || "");
-    const voice = String(body.voice || "");
-
-    if (!text && !image && !voice) {
-      return json(
-        {
-          success: false,
-          error: "یادداشت خالی است"
-        },
-        400
-      );
-    }
-
-    if (text.length > 500) {
-      return json(
-        {
-          success: false,
-          error: "متن بیشتر از ۵۰۰ کاراکتر است"
-        },
-        400
-      );
-    }
-
-    /* =========================
-       IMAGE VALIDATION
-    ========================= */
-
-    if (image) {
-      if (!image.startsWith("data:image/")) {
-        return json(
-          {
-            success: false,
-            error: "فرمت عکس نامعتبر است"
-          },
-          400
-        );
-      }
-
-      /*
-        حدود 900KB برای رشته Base64 عکس.
-        عکس در سمت سایت قبل از ارسال فشرده می‌شود.
-      */
-
-      if (image.length > 900000) {
-        return json(
-          {
-            success: false,
-            error: "حجم عکس زیاد است"
-          },
-          413
-        );
-      }
-    }
-
-    /* =========================
-       VOICE VALIDATION
-    ========================= */
-
-    if (voice) {
-      const validVoice =
-        voice.startsWith("data:audio/webm") ||
-        voice.startsWith("data:audio/mp4") ||
-        voice.startsWith("data:audio/ogg") ||
-        voice.startsWith("data:audio/mpeg") ||
-        voice.startsWith("data:audio/wav");
-
-      if (!validVoice) {
-        return json(
-          {
-            success: false,
-            error: "فرمت ویس نامعتبر است"
-          },
-          400
-        );
-      }
-
-      /*
-        حدود 1.6MB برای ویس.
-        سمت سایت نیز حداکثر ۳۰ ثانیه ضبط می‌کند.
-      */
-
-      if (voice.length > 2200000) {
-        return json(
-          {
-            success: false,
-            error: "حجم ویس زیاد است"
-          },
-          413
-        );
-      }
-    }
-
-    /* =========================
-       CREATE NOTE
-    ========================= */
-
-    const id =
-      Date.now().toString(36) +
-      "-" +
-      crypto.randomUUID();
-
-    const note = {
-      id,
-      text,
-      image,
-      voice,
-      createdAt: Date.now()
-    };
-
-    /*
-      هر یادداشت در KV جدا ذخیره می‌شود.
-    */
-
-    await env.VERONA_NOTES.put(
-      "verona:note:" + id,
-      JSON.stringify(note)
-    );
-
-    /* =========================
-       UPDATE INDEX
-    ========================= */
-
-    let index =
-      await env.VERONA_NOTES.get(
-        "verona:notes:index",
-        "json"
       );
 
-    if (!Array.isArray(index)) {
-      index = [];
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Supabase upload failed: ${errorText}`);
+      }
+
+      return supabaseStorageUrl(key);
     }
 
-    /*
-      جدیدترین یادداشت اول
-    */
+    async function deleteMedia(key) {
+      if (!key) return;
 
-    index = [
-      id,
-      ...index.filter(existingId => existingId !== id)
-    ];
-
-    /*
-      حداکثر ۱۰۰۰ یادداشت.
-      قدیمی‌ترین‌ها حذف می‌شوند.
-    */
-
-    const removedIds = index.slice(1000);
-
-    index = index.slice(0, 1000);
-
-    await env.VERONA_NOTES.put(
-      "verona:notes:index",
-      JSON.stringify(index)
-    );
-
-    /*
-      پاک کردن یادداشت‌های خیلی قدیمی
-    */
-
-    for (const oldId of removedIds) {
       try {
-        await env.VERONA_NOTES.delete(
-          "verona:note:" + oldId
+        await fetch(
+          `${SUPABASE_URL}/storage/v1/object/${BUCKET}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Authorization": `Bearer ${SUPABASE_KEY}`,
+              "apikey": SUPABASE_KEY,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              prefixes: [key]
+            })
+          }
         );
+      } catch {}
+    }
+
+    // =========================
+    // GET NOTES
+    // =========================
+    if (path === "/api/notes" && request.method === "GET") {
+      const notes = await getNotes();
+
+      return json({
+        success: true,
+        notes
+      });
+    }
+
+    // =========================
+    // CREATE NOTE
+    // =========================
+    if (path === "/api/notes" && request.method === "POST") {
+      try {
+        const body = await request.json();
+
+        const text = String(body.text || "").trim();
+        const image = body.image || null;
+        const voice = body.voice || null;
+
+        if (!text && !image && !voice) {
+          return json({
+            success: false,
+            error: "یادداشت خالی است."
+          }, 400);
+        }
+
+        const notes = await getNotes();
+
+        const id =
+          Date.now().toString(36) +
+          "-" +
+          Math.random().toString(36).slice(2, 10);
+
+        const createdAt = Date.now();
+
+        const note = {
+          id,
+          text,
+          createdAt,
+          image: null,
+          voice: null
+        };
+
+        // =========================
+        // IMAGE
+        // =========================
+        if (image && image.data) {
+          const imageKey = `notes/${id}/image.jpg`;
+
+          const imageUrl = await uploadMedia(
+            imageKey,
+            image.data,
+            "image/jpeg"
+          );
+
+          note.image = {
+            url: imageUrl,
+            key: imageKey
+          };
+        }
+
+        // =========================
+        // VOICE
+        // =========================
+        if (voice && voice.data) {
+          const voiceKey = `notes/${id}/voice.webm`;
+
+          const voiceUrl = await uploadMedia(
+            voiceKey,
+            voice.data,
+            "audio/webm"
+          );
+
+          note.voice = {
+            url: voiceUrl,
+            key: voiceKey
+          };
+        }
+
+        notes.unshift(note);
+
+        // حداکثر 1000 یادداشت
+        const limitedNotes = notes.slice(0, 1000);
+
+        await saveNotes(limitedNotes);
+
+        return json({
+          success: true,
+          note
+        });
+
       } catch (error) {
-        console.error(
-          "Could not remove old note:",
-          oldId,
-          error
-        );
+        return json({
+          success: false,
+          error: error?.message || "خطا در ثبت یادداشت"
+        }, 500);
       }
     }
 
-    return json({
-      success: true,
-      note
-    });
+    // =========================
+    // DELETE NOTE
+    // =========================
+    if (
+      path.startsWith("/api/notes/") &&
+      request.method === "DELETE"
+    ) {
+      const auth = request.headers.get("Authorization") || "";
 
-  } catch (error) {
-    console.error(error);
-
-    return json(
-      {
-        success: false,
-        error: "خطا در ثبت یادداشت"
-      },
-      500
-    );
-  }
-}
-
-
-/* =========================================
-   DELETE NOTE
-========================================= */
-
-async function deleteNote(request, env, id) {
-  try {
-
-    const authorization =
-      request.headers.get("Authorization") || "";
-
-    if (authorization !== "Bearer 4450") {
-      return json(
-        {
+      if (auth !== "Bearer 4450") {
+        return json({
           success: false,
           error: "دسترسی غیرمجاز"
-        },
-        401
-      );
-    }
-
-    if (!id) {
-      return json(
-        {
-          success: false,
-          error: "شناسه یادداشت نامعتبر است"
-        },
-        400
-      );
-    }
-
-    await env.VERONA_NOTES.delete(
-      "verona:note:" + id
-    );
-
-    let index =
-      await env.VERONA_NOTES.get(
-        "verona:notes:index",
-        "json"
-      );
-
-    if (!Array.isArray(index)) {
-      index = [];
-    }
-
-    index = index.filter(
-      existingId => existingId !== id
-    );
-
-    await env.VERONA_NOTES.put(
-      "verona:notes:index",
-      JSON.stringify(index)
-    );
-
-    return json({
-      success: true
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    return json(
-      {
-        success: false,
-        error: "خطا در حذف یادداشت"
-      },
-      500
-    );
-  }
-}
-
-
-/* =========================================
-   JSON RESPONSE
-========================================= */
-
-function json(data, status = 200) {
-  return new Response(
-    JSON.stringify(data),
-    {
-      status,
-      headers: {
-        "Content-Type": "application/json; charset=UTF-8",
-        "Cache-Control": "no-store"
+        }, 401);
       }
+
+      const id = decodeURIComponent(
+        path.replace("/api/notes/", "")
+      );
+
+      if (!id) {
+        return json({
+          success: false,
+          error: "شناسه یادداشت نامعتبر است."
+        }, 400);
+      }
+
+      const notes = await getNotes();
+
+      const note = notes.find(n => String(n.id) === String(id));
+
+      if (!note) {
+        return json({
+          success: false,
+          error: "یادداشت پیدا نشد."
+        }, 404);
+      }
+
+      // حذف عکس از Supabase
+      if (note.image?.key) {
+        await deleteMedia(note.image.key);
+      }
+
+      // حذف صدا از Supabase
+      if (note.voice?.key) {
+        await deleteMedia(note.voice.key);
+      }
+
+      const remaining = notes.filter(
+        n => String(n.id) !== String(id)
+      );
+
+      await saveNotes(remaining);
+
+      return json({
+        success: true
+      });
     }
-  );
-}
+
+    // =========================
+    // DEFAULT STATIC ASSETS
+    // =========================
+    return env.ASSETS.fetch(request);
+  }
+};
