@@ -1,4 +1,4 @@
-const CACHE = "verona-stone-v4";
+const CACHE = "verona-stone-v5";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
@@ -8,36 +8,35 @@ self.addEventListener("install", event => {
       return cache.addAll([
         "./",
         "./index.html",
-        "./manifest.webmanifest"
+        "./manifest.webmanifest",
+
+        "./images/page-kabinet.jpg",
+        "./images/pelleh.jpg",
+        "./images/travertine.jpg",
+        "./images/marmerit.jpg",
+        "./images/farsh.jpg",
+        "./images/crystal-granite.jpg",
+        "./images/elamanzibasaazi.jpg"
       ]);
     })
   );
 });
 
 self.addEventListener("activate", event => {
-
   event.waitUntil(
-
     caches.keys().then(keys => {
-
       return Promise.all(
-
         keys.map(key => {
-
-          if(key !== CACHE){
+          if (key !== CACHE) {
             return caches.delete(key);
           }
-
         })
-
       );
-
-    }).then(() => self.clients.claim())
-
+    }).then(() => {
+      return self.clients.claim();
+    })
   );
-
 });
-
 
 self.addEventListener("fetch", event => {
 
@@ -46,7 +45,7 @@ self.addEventListener("fetch", event => {
     fetch(event.request)
       .then(response => {
 
-        if(response && response.status === 200){
+        if (response && response.status === 200) {
 
           const copy = response.clone();
 
