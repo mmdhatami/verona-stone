@@ -1,5 +1,6 @@
 export default {
   async fetch(request, env, ctx) {
+
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -10,20 +11,24 @@ export default {
     };
 
     const json = (data, status = 200) => {
-      return new Response(JSON.stringify(data), {
-        status,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json; charset=utf-8"
+      return new Response(
+        JSON.stringify(data),
+        {
+          status,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json; charset=utf-8"
+          }
         }
-      });
+      );
     };
 
     /*
      * =========================================================
-     * OPTIONS / CORS
+     * CORS
      * =========================================================
      */
+
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
@@ -33,53 +38,66 @@ export default {
 
     /*
      * =========================================================
-     * IMPORTANT:
-     * Static website files MUST be served independently
-     * from API/Supabase.
-     *
-     * This prevents Supabase configuration problems from
-     * breaking index.html and the catalog.
-     * =========================================================
-     */
-
-    const isApiRequest = path.startsWith("/api/");
-
-    /*
-     * =========================================================
      * ENVIRONMENT
      * =========================================================
      */
 
-    const SUPABASE_URL = env.supabase_url || "";
-    const SUPABASE_KEY = env.cloudflare_worker || "";
-    const BUCKET = "verona-media";
-    const NOTES_KEY = "verona:notes";
+    const SUPABASE_URL =
+      env.supabase_url || "";
+
+    const SUPABASE_KEY =
+      env.cloudflare_worker || "";
+
+    const BUCKET =
+      "verona-media";
+
+    const NOTES_KEY =
+      "verona:notes";
+
+    const isApiRequest =
+      path.startsWith("/api/");
 
     /*
      * =========================================================
-     * KV HELPERS
+     * KV
      * =========================================================
      */
 
     async function getNotes() {
+
+      if (!env.VERONA_NOTES) {
+        throw new Error(
+          "VERONA_NOTES binding is not configured."
+        );
+      }
+
       try {
-        if (!env.VERONA_NOTES) {
-          return [];
+
+        const value =
+          await env.VERONA_NOTES.get(
+            NOTES_KEY,
+            "json"
+          );
+
+        if (Array.isArray(value)) {
+          return value;
         }
 
-        const value = await env.VERONA_NOTES.get(
-          NOTES_KEY,
-          "json"
+        return [];
+
+      } catch (error) {
+
+        console.error(
+          "GET NOTES ERROR:",
+          error
         );
 
-        return Array.isArray(value) ? value : [];
-      } catch (error) {
-        console.error("getNotes error:", error);
         return [];
       }
     }
 
     async function saveNotes(notes) {
+
       if (!env.VERONA_NOTES) {
         throw new Error(
           "VERONA_NOTES binding is not configured."
@@ -94,11 +112,20 @@ export default {
 
     /*
      * =========================================================
-     * SUPABASE HELPERS
+     * SUPABASE
      * =========================================================
      */
 
+    function hasSupabase() {
+
+      return Boolean(
+        SUPABASE_URL &&
+        SUPABASE_KEY
+      );
+    }
+
     function supabaseStorageUrl(key) {
+
       if (!SUPABASE_URL) {
         return "";
       }
@@ -114,71 +141,121 @@ export default {
       base64,
       contentType
     ) {
-      if (!SUPABASE_URL || !SUPABASE_KEY) {
+
+      if (!hasSupabase()) {
+
         throw new Error(
-          "Supabase environment variables are not configured."
+          "برای ثبت عکس یا صدا، اتصال Supabase در Cloudflare تنظیم نشده است."
         );
       }
 
       if (!base64) {
-        throw new Error("فایل خالی است.");
-      }
-
-      const binary = Uint8Array.from(
-        atob(base64),
-        c => c.charCodeAt(0)
-      );
-
-      const response = await fetch(
-        `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${key}`,
-        {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${SUPABASE_KEY}`,
-            "apikey": SUPABASE_KEY,
-            "Content-Type": contentType,
-            "x-upsert": "true"
-          },
-          body: binary
-        }
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
 
         throw new Error(
-          `Supabase upload failed: ${errorText}`
+          "فایل ارسالی خالی است."
         );
       }
 
-      return supabaseStorageUrl(key);
+      let binary;
+
+      try {
+
+        binary =
+          Uint8Array.from(
+            atob(base64),
+            char =>
+              char.charCodeAt(0)
+          );
+
+      } catch (error) {
+
+        throw new Error(
+          "فرمت فایل ارسالی نامعتبر است."
+        );
+      }
+
+      const response =
+        await fetch(
+          `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${key}`,
+          {
+            method: "POST",
+
+            headers: {
+              "Authorization":
+                `Bearer ${SUPABASE_KEY}`,
+
+              "apikey":
+                SUPABASE_KEY,
+
+              "Content-Type":
+                contentType,
+
+              "x-upsert":
+                "true"
+            },
+
+            body: binary
+          }
+        );
+
+      if (!response.ok) {
+
+        const errorText =
+          await response.text();
+
+        console.error(
+          "SUPABASE UPLOAD ERROR:",
+          errorText
+        );
+
+        throw new Error(
+          "آپلود فایل در Supabase انجام نشد."
+        );
+      }
+
+      return supabaseStorageUrl(
+        key
+      );
     }
 
     async function deleteMedia(key) {
-      if (!key) return;
 
-      if (!SUPABASE_URL || !SUPABASE_KEY) {
+      if (!key) {
+        return;
+      }
+
+      if (!hasSupabase()) {
         return;
       }
 
       try {
+
         await fetch(
           `${SUPABASE_URL}/storage/v1/object/${BUCKET}`,
           {
             method: "DELETE",
+
             headers: {
-              "Authorization": `Bearer ${SUPABASE_KEY}`,
-              "apikey": SUPABASE_KEY,
-              "Content-Type": "application/json"
+              "Authorization":
+                `Bearer ${SUPABASE_KEY}`,
+
+              "apikey":
+                SUPABASE_KEY,
+
+              "Content-Type":
+                "application/json"
             },
+
             body: JSON.stringify({
               prefixes: [key]
             })
           }
         );
+
       } catch (error) {
+
         console.error(
-          "deleteMedia error:",
+          "DELETE MEDIA ERROR:",
           error
         );
       }
@@ -186,7 +263,7 @@ export default {
 
     /*
      * =========================================================
-     * API: GET NOTES
+     * GET NOTES
      * =========================================================
      */
 
@@ -194,17 +271,34 @@ export default {
       path === "/api/notes" &&
       request.method === "GET"
     ) {
-      const notes = await getNotes();
 
-      return json({
-        success: true,
-        notes
-      });
+      try {
+
+        const notes =
+          await getNotes();
+
+        return json({
+          success: true,
+          notes
+        });
+
+      } catch (error) {
+
+        return json(
+          {
+            success: false,
+            error:
+              error?.message ||
+              "خطا در دریافت یادداشت‌ها"
+          },
+          500
+        );
+      }
     }
 
     /*
      * =========================================================
-     * API: CREATE NOTE
+     * CREATE NOTE
      * =========================================================
      */
 
@@ -212,12 +306,16 @@ export default {
       path === "/api/notes" &&
       request.method === "POST"
     ) {
-      try {
-        const body = await request.json();
 
-        const text = String(
-          body?.text || ""
-        ).trim();
+      try {
+
+        const body =
+          await request.json();
+
+        const text =
+          String(
+            body?.text || ""
+          ).trim();
 
         const image =
           body?.image || null;
@@ -225,17 +323,55 @@ export default {
         const voice =
           body?.voice || null;
 
-        if (!text && !image && !voice) {
+        /*
+         * فقط وقتی واقعاً data وجود دارد
+         * فایل را پردازش می‌کنیم.
+         */
+
+        const hasImage =
+          Boolean(
+            image &&
+            typeof image === "object" &&
+            image.data
+          );
+
+        const hasVoice =
+          Boolean(
+            voice &&
+            typeof voice === "object" &&
+            voice.data
+          );
+
+        /*
+         * یادداشت کاملاً خالی
+         */
+
+        if (
+          !text &&
+          !hasImage &&
+          !hasVoice
+        ) {
+
           return json(
             {
               success: false,
-              error: "یادداشت خالی است."
+              error:
+                "یادداشت خالی است."
             },
             400
           );
         }
 
-        const notes = await getNotes();
+        /*
+         * گرفتن یادداشت‌های قبلی
+         */
+
+        const notes =
+          await getNotes();
+
+        /*
+         * شناسه یکتا
+         */
 
         const id =
           Date.now().toString(36) +
@@ -244,75 +380,97 @@ export default {
             .toString(36)
             .slice(2, 10);
 
-        const createdAt = Date.now();
+        const createdAt =
+          Date.now();
+
+        /*
+         * یادداشت جدید
+         */
 
         const note = {
+
           id,
+
           text,
+
           createdAt,
+
           image: null,
+
           voice: null
         };
 
         /*
-         * -----------------------------------------------------
+         * =====================================================
          * IMAGE
-         * -----------------------------------------------------
+         * =====================================================
          */
 
-        if (
-          image &&
-          image.data
-        ) {
+        if (hasImage) {
+
           const imageKey =
-            `notes/${id}/image.jpg`;
+            `notes/${id}/image`;
+
+          const imageType =
+            image.type ||
+            "image/jpeg";
 
           const imageUrl =
             await uploadMedia(
               imageKey,
               image.data,
-              image.type ||
-                "image/jpeg"
+              imageType
             );
 
           note.image = {
-            url: imageUrl,
-            key: imageKey
+
+            url:
+              imageUrl,
+
+            key:
+              imageKey
           };
         }
 
         /*
-         * -----------------------------------------------------
+         * =====================================================
          * VOICE
-         * -----------------------------------------------------
+         * =====================================================
          */
 
-        if (
-          voice &&
-          voice.data
-        ) {
+        if (hasVoice) {
+
           const voiceKey =
             `notes/${id}/voice.webm`;
+
+          const voiceType =
+            voice.type ||
+            "audio/webm";
 
           const voiceUrl =
             await uploadMedia(
               voiceKey,
               voice.data,
-              voice.type ||
-                "audio/webm"
+              voiceType
             );
 
           note.voice = {
-            url: voiceUrl,
-            key: voiceKey
+
+            url:
+              voiceUrl,
+
+            key:
+              voiceKey
           };
         }
 
-        notes.unshift(note);
-
         /*
-         * حداکثر 1000 یادداشت
+         * =====================================================
+         * SAVE
+         * =====================================================
          */
+
+        notes.unshift(note);
 
         const limitedNotes =
           notes.slice(0, 1000);
@@ -321,12 +479,22 @@ export default {
           limitedNotes
         );
 
+        /*
+         * =====================================================
+         * SUCCESS
+         * =====================================================
+         */
+
         return json({
+
           success: true,
+
           note
+
         });
 
       } catch (error) {
+
         console.error(
           "CREATE NOTE ERROR:",
           error
@@ -335,6 +503,7 @@ export default {
         return json(
           {
             success: false,
+
             error:
               error?.message ||
               "خطا در ثبت یادداشت"
@@ -346,7 +515,7 @@ export default {
 
     /*
      * =========================================================
-     * API: DELETE NOTE
+     * DELETE NOTE
      * =========================================================
      */
 
@@ -354,7 +523,9 @@ export default {
       path.startsWith("/api/notes/") &&
       request.method === "DELETE"
     ) {
+
       try {
+
         const auth =
           request.headers.get(
             "Authorization"
@@ -363,9 +534,11 @@ export default {
         if (
           auth !== "Bearer 4450"
         ) {
+
           return json(
             {
               success: false,
+
               error:
                 "دسترسی غیرمجاز"
             },
@@ -382,9 +555,11 @@ export default {
           );
 
         if (!id) {
+
           return json(
             {
               success: false,
+
               error:
                 "شناسه یادداشت نامعتبر است."
             },
@@ -403,9 +578,11 @@ export default {
           );
 
         if (!note) {
+
           return json(
             {
               success: false,
+
               error:
                 "یادداشت پیدا نشد."
             },
@@ -414,28 +591,36 @@ export default {
         }
 
         /*
-         * حذف عکس
+         * حذف عکس از Supabase
          */
 
         if (
-          note.image?.key
+          note.image &&
+          note.image.key
         ) {
+
           await deleteMedia(
             note.image.key
           );
         }
 
         /*
-         * حذف صدا
+         * حذف صدا از Supabase
          */
 
         if (
-          note.voice?.key
+          note.voice &&
+          note.voice.key
         ) {
+
           await deleteMedia(
             note.voice.key
           );
         }
+
+        /*
+         * حذف از KV
+         */
 
         const remaining =
           notes.filter(
@@ -449,10 +634,13 @@ export default {
         );
 
         return json({
+
           success: true
+
         });
 
       } catch (error) {
+
         console.error(
           "DELETE NOTE ERROR:",
           error
@@ -461,6 +649,7 @@ export default {
         return json(
           {
             success: false,
+
             error:
               error?.message ||
               "خطا در حذف یادداشت"
@@ -472,20 +661,19 @@ export default {
 
     /*
      * =========================================================
-     * OTHER API ROUTES
-     * =========================================================
-     *
-     * اگر API ناشناخته‌ای درخواست شد، پاسخ واضح می‌دهیم
-     * و اجازه نمی‌دهیم به صفحه اصلی تبدیل شود.
+     * UNKNOWN API
      * =========================================================
      */
 
     if (isApiRequest) {
+
       return json(
         {
           success: false,
+
           error:
             "API route not found.",
+
           path
         },
         404
@@ -496,18 +684,6 @@ export default {
      * =========================================================
      * STATIC WEBSITE
      * =========================================================
-     *
-     * مهم‌ترین قسمت:
-     *
-     * /index.html
-     * CSS
-     * JS
-     * تصاویر
-     * manifest
-     * sw.js
-     *
-     * همگی از ASSETS سرو می‌شوند.
-     * =========================================================
      */
 
     if (
@@ -515,20 +691,23 @@ export default {
       typeof env.ASSETS.fetch ===
         "function"
     ) {
+
       return env.ASSETS.fetch(
         request
       );
     }
 
     /*
-     * اگر ASSETS وجود نداشته باشد،
-     * به جای خطای مبهم، خطای واضح می‌دهیم.
+     * =========================================================
+     * ASSETS ERROR
+     * =========================================================
      */
 
     return new Response(
       "ASSETS binding is not available. Please deploy this Worker with wrangler.jsonc.",
       {
         status: 500,
+
         headers: {
           "Content-Type":
             "text/plain; charset=utf-8"
