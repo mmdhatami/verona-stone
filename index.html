@@ -1000,8 +1000,9 @@ onclick="backHome()"
 <input
 id="categorySearch"
 class="search"
-placeholder="🔎 جستجو در دسته‌بندی‌ها..."
+placeholder="🔎 جستجو در دسته‌بندی‌ها و محصولات..."
 oninput="renderCategoriesPage()"
+onkeydown="if(event.key==='Enter')showSearchResults(this.value)"
 >
 
 <div
@@ -1059,6 +1060,7 @@ onchange="picked(this)"
 id="gallery"
 type="file"
 accept="image/*"
+capture="environment"
 class="hidden"
 onchange="picked(this)"
 >
@@ -1082,9 +1084,7 @@ class="hidden"
 onchange="pickedNoteImage(this)"
 >
 
-<script>
-
-const CATEGORIES_KEY="verona_categories";
+<script>const CATEGORIES_KEY="verona_categories";
 const PRODUCTS_KEY="verona_products";
 const PHONE_KEY="verona_phone";
 
@@ -1193,57 +1193,37 @@ images:[
 
 ];
 
-let categories=defaultCategories;
-try{
-const storedCategories=JSON.parse(localStorage.getItem(CATEGORIES_KEY)||"null");
-if(Array.isArray(storedCategories)&&storedCategories.length)categories=storedCategories;}catch(e){
-categories=defaultCategories;
-}
+let categories=
+JSON.parse(
+localStorage.getItem(CATEGORIES_KEY)||"null"
+)||defaultCategories;
 
-let products=[];
-
-try{
-
-const storedProducts=
+let products=
 JSON.parse(
 localStorage.getItem(PRODUCTS_KEY)||"[]"
 );
 
-if(Array.isArray(storedProducts))
-products=storedProducts;
-
-}catch(e){
-
-products=[];
-
-}
-
 let admin=false;
 
+let currentPhoto="";
+let editingProduct=null;
+let editingCategory=null;
 let selectedCategory="";
 
-let editingCategory=null;
+let notes=[];
+let notesLoaded=false;
 
-let editingProduct=null;
+let noteImageData="";
+let noteVoiceBlob=null;
+let noteVoiceUrl="";
 
-let currentPhoto="";
-
-let currentNoteImage="";
-
-let currentNoteAudio="";
-
-let voiceRecorder=null;
-
+let mediaRecorder=null;
 let voiceChunks=[];
-
-let isRecording=false;
-
-
-/* ================= STORAGE ================= */
+let voiceRecording=false;
+let voiceTimer=null;
+let voiceSeconds=0;
 
 function save(){
-
-try{
 
 localStorage.setItem(
 CATEGORIES_KEY,
@@ -1255,33 +1235,19 @@ PRODUCTS_KEY,
 JSON.stringify(products)
 );
 
-}catch(e){
-
-console.error(e);
-
-showToast(
-"ذخیره انجام نشد؛ حافظه مرورگر پر است"
-);
-
 }
-
-}
-
-
-/* ================= NORMALIZE ================= */
 
 function norm(s){
 
-return String(s||"")
-.trim()
-.toLowerCase()
+return String(s??"")
 .replace(/ي/g,"ی")
-.replace(/ك/g,"ک");
+.replace(/ى/g,"ی")
+.replace(/ك/g,"ک")
+.replace(/‌/g,"")
+.replace(/\s+/g," ")
+.trim();
 
 }
-
-
-/* ================= ESCAPE ================= */
 
 function esc(s){
 
@@ -1298,9 +1264,6 @@ m=>({
 
 }
 
-
-/* ================= TOAST ================= */
-
 function showToast(t){
 
 const x=
@@ -1310,21 +1273,11 @@ x.textContent=t;
 
 x.style.display="block";
 
-clearTimeout(
-showToast.timer
-);
-
-showToast.timer=
 setTimeout(()=>{
-
 x.style.display="none";
-
 },2500);
 
 }
-
-
-/* ================= MODAL ================= */
 
 function openModal(html){
 
@@ -1338,7 +1291,6 @@ document
 
 }
 
-
 function closeModal(){
 
 stopVoiceRecording(false);
@@ -1349,216 +1301,50 @@ document
 
 }
 
-
-/* ================= IMAGE ================= */
-
 function imgSrc(p){
 
 return p ||
-
 "data:image/svg+xml;charset=UTF-8,"+
-
 encodeURIComponent(
-
 '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400">'+
-
 '<rect width="100%" height="100%" fill="#eee7d8"/>'+
-
 '<text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" fill="#777" font-size="28">تصویر محصول</text>'+
-
 '</svg>'
-
 );
 
 }
 
-
-/* ================= CATEGORY IMAGE FALLBACK ================= */
-
-function categoryFallbackImage(category){
-
-const name=
-norm(category?.name||"");
-
-const map={
-
-"صفحه کابینت":
-"https://images.unsplash.com/photo-1556912167-f556f1f39fdf?auto=format&fit=crop&w=900&q=82",
-
-"سنگ پله":
-"https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=82",
-
-"تراورتن":
-"https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=900&q=82",
-
-"مرمریت":
-"https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=82",
-
-"سنگ فرش":
-"https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=82",
-
-"کریستال و گرانیت":
-"https://images.unsplash.com/photo-1600607688969-a5bfcd646154?auto=format&fit=crop&w=900&q=82",
-
-"المان و زیباسازی":
-"https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=900&q=82"
-
-};
-
-return map[name]||"";
-
-}
-
-
-/* ================= CATEGORY SVG FALLBACK ================= */
-
-function categoryFallbackSvg(category){
-
-const name=
-esc(category?.name||"سنگ ورونا");
-
-const svg=
-
-`<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600">
-
-<defs>
-
-<linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-
-<stop offset="0" stop-color="#173f36"/>
-
-<stop offset=".52" stop-color="#806640"/>
-
-<stop offset="1" stop-color="#e1c48d"/>
-
-</linearGradient>
-
-<filter id="n">
-
-<feTurbulence
-type="fractalNoise"
-baseFrequency=".018"
-numOctaves="3"
-stitchTiles="stitch"
-/>
-
-<feColorMatrix
-values="1 0 0 0 0
-0 1 0 0 0
-0 0 1 0 0
-0 0 0 .18 0"
-/>
-
-</filter>
-
-</defs>
-
-<rect
-width="900"
-height="600"
-fill="url(#g)"
-/>
-
-<rect
-width="900"
-height="600"
-filter="url(#n)"
-opacity=".45"
-/>
-
-<path
-d="M-40 430 C180 270 260 560 500 370 S760 250 950 90"
-fill="none"
-stroke="#fff"
-stroke-opacity=".22"
-stroke-width="24"
-/>
-
-<path
-d="M-80 520 C160 350 300 650 560 430 S780 330 980 190"
-fill="none"
-stroke="#fff"
-stroke-opacity=".12"
-stroke-width="11"
-/>
-
-<rect
-x="0"
-y="0"
-width="900"
-height="600"
-fill="#000"
-opacity=".08"
-/>
-
-<text
-x="450"
-y="315"
-text-anchor="middle"
-font-family="Arial,sans-serif"
-font-size="42"
-font-weight="700"
-fill="#fff"
->
-${name}
-</text>
-
-<text
-x="450"
-y="365"
-text-anchor="middle"
-font-family="Arial,sans-serif"
-font-size="22"
-fill="#fff"
-opacity=".9"
->
-فروشگاه سنگ ورونا
-</text>
-
-</svg>`;
-
-return
-"data:image/svg+xml;charset=UTF-8,"+
-encodeURIComponent(svg);
-
-}
-
-
-/* ================= CATEGORY IMAGE CANDIDATES ================= */
-
 function categoryImageCandidates(category){
 
+if(
+category &&
+Array.isArray(category.images) &&
+category.images.length
+){
+
+return category.images;
+
+}
+
 const name=
 norm(category?.name||"");
 
-const custom=
-category &&
-Array.isArray(category.images)
-?
-category.images
-:
-[];
+if(name==="صفحه کابینت"){
 
-const legacy=
-category?.img
-?
-[category.img]
-:
-[];
-
-const localMap={
-
-"صفحه کابینت":[
+return[
 "images/page-kabinet.jpg.jpg",
 "images/page-kabinet.jpg",
 "images/page-kabinet.jpeg",
 "images/page-kabinet.png",
 "images/page-kabinet.webp",
-"images/page_kabinet.jpg",
-"images/page-kabinet.JPG"
-],
+"images/page_kabinet.jpg"
+];
 
-"سنگ پله":[
+}
+
+if(name==="سنگ پله"){
+
+return[
 "images/pelleh.jpg.jpg",
 "images/pelleh.jpg",
 "images/pelleh.jpeg",
@@ -1566,9 +1352,13 @@ const localMap={
 "images/pelleh.webp",
 "images/pelle.jpg",
 "images/pelle.jpg.jpg"
-],
+];
 
-"تراورتن":[
+}
+
+if(name==="تراورتن"){
+
+return[
 "images/travertine.jpg.jpg",
 "images/travertine.jpg",
 "images/travertine.jpeg",
@@ -1576,9 +1366,13 @@ const localMap={
 "images/travertine.webp",
 "images/travertin.jpg",
 "images/travertin.jpg.jpg"
-],
+];
 
-"مرمریت":[
+}
+
+if(name==="مرمریت"){
+
+return[
 "images/marmerit.jpg.jpg",
 "images/marmerit.jpg",
 "images/marmerit.jpeg",
@@ -1586,9 +1380,13 @@ const localMap={
 "images/marmerit.webp",
 "images/marmarit.jpg",
 "images/marmarit.jpg.jpg"
-],
+];
 
-"سنگ فرش":[
+}
+
+if(name==="سنگ فرش"){
+
+return[
 "images/farsh.jpg.jpg",
 "images/farsh.jpg",
 "images/farsh.jpeg",
@@ -1596,19 +1394,26 @@ const localMap={
 "images/farsh.webp",
 "images/sang-farsh.jpg",
 "images/sang-farsh.jpg.jpg"
-],
+];
 
-"کریستال و گرانیت":[
+}
+
+if(name==="کریستال و گرانیت"){
+
+return[
 "images/crystal-granite.jpg.jpg",
 "images/crystal-granite.jpg",
 "images/crystal-granite.jpeg",
 "images/crystal-granite.png",
 "images/crystal-granite.webp",
-"images/crystal_granite.jpg",
-"images/crystal-granite.JPG"
-],
+"images/crystal_granite.jpg"
+];
 
-"المان و زیباسازی":[
+}
+
+if(name==="المان و زیباسازی"){
+
+return[
 "images/elamanzibasaazi.jpg.jpg",
 "images/elamanzibasaazi.jpg",
 "images/elamanzibasaazi.jpeg",
@@ -1617,41 +1422,15 @@ const localMap={
 "images/elaman-zibasaazi.jpg",
 "images/elaman-zibasaazi.jpg.jpg",
 "images/elamanzibazayi.jpg"
-]
-
-};
-
-const remote=
-categoryFallbackImage(category);
-
-const local=
-custom.length
-?
-custom
-:
-(localMap[name]||legacy);
-
-const list=[
-...local
-];
-
-if(remote)
-list.push(remote);
-
-list.push(
-categoryFallbackSvg(category)
-);
-
-return[
-...new Set(
-list.filter(Boolean)
-)
 ];
 
 }
 
+return[
+category?.img||""
+].filter(Boolean);
 
-/* ================= CATEGORY IMAGE HTML ================= */
+}
 
 function categoryImageHtml(category){
 
@@ -1660,31 +1439,25 @@ categoryImageCandidates(category);
 
 const first=
 candidates[0]||
-categoryFallbackSvg(category);
+"";
 
 const encoded=
 encodeURIComponent(
 JSON.stringify(candidates)
 );
 
-return `
+return`
 
 <img
 src="${esc(first)}"
 data-category-images="${esc(encoded)}"
 data-category-index="0"
-alt="${esc(category?.name||"دسته بندی")}"
-loading="lazy"
-decoding="async"
 onerror="tryNextCategoryImage(this)"
 >
 
 `;
 
 }
-
-
-/* ================= CATEGORY IMAGE ERROR ================= */
 
 function tryNextCategoryImage(img){
 
@@ -1725,32 +1498,19 @@ return;
 
 }catch(e){}
 
-img.onerror=null;
+img.style.opacity=".25";
 
-img.style.opacity="1";
-
-img.src=
-categoryFallbackSvg({
-name:img.alt||"سنگ ورونا"
-});
+img.alt="تصویر دسته‌بندی";
 
 }
-
-
-/* ================= CATEGORY PRODUCTS ================= */
 
 function categoryProducts(categoryName){
 
 return products.filter(
-p=>
-norm(p.category)===
-norm(categoryName)
+p=>norm(p.category)===norm(categoryName)
 );
 
 }
-
-
-/* ================= OPEN CATALOG ================= */
 
 function openCatalog(){
 
@@ -1761,9 +1521,6 @@ document
 openCategories();
 
 }
-
-
-/* ================= BACK HOME ================= */
 
 function backHome(){
 
@@ -1788,9 +1545,6 @@ behavior:"smooth"
 
 }
 
-
-/* ================= OPEN CATEGORIES ================= */
-
 function openCategories(){
 
 document
@@ -1814,90 +1568,62 @@ behavior:"smooth"
 
 }
 
-
-/* ================= RENDER CATEGORIES ================= */
-
 function renderCategoriesPage(){
 
-const q=
-document
-.getElementById("categorySearch")
-.value
-.trim()
-.toLowerCase();
+const q=document.getElementById('categorySearch')?.value||'';
+const query=norm(q);
 
-const box=
-document.getElementById("categories");
+const box=document.getElementById('categories');
+if(!box)return;
 
-box.innerHTML="";
+if(query){
 
-const filtered=
-categories.filter(c=>
-!q ||
-c.name.toLowerCase().includes(q)
-);
+const matchedCategories=categories.filter(c=>searchTextMatch(c.name,query));
+const matches=products.filter(p=>searchProductMatch(p,query));
 
-filtered.forEach(c=>{
+if(!matchedCategories.length && !matches.length){
+box.innerHTML=`<div class="notice">🔎 نتیجه‌ای برای «${esc(query)}» پیدا نشد.</div>`;
+return;
+}
 
-const count=
-categoryProducts(c.name).length;
+box.innerHTML=`
+<div class="panel" style="grid-column:1/-1">
+<h2 class="page-title">🔎 جستجوی هوشمند</h2>
+<div class="notice" style="margin-bottom:14px">برای «${esc(query)}»، ${matchedCategories.length} دسته و ${matches.length} محصول پیدا شد.</div>
+${matchedCategories.length?`<div class="actions" style="justify-content:flex-start;margin-bottom:14px;gap:8px">${matchedCategories.map(c=>`<button type="button" class="btn light" onclick="showCategory('${encodeURIComponent(c.name)}')">📂 ${esc(c.name)}</button>`).join('')}</div>`:''}
+<div class="products">
+${matches.length?matches.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(productCard).join(''):`<div class="notice">محصول مستقیمی پیدا نشد.</div>`}
+</div>
+</div>`;
+
+return;
+}
+
+box.innerHTML='';
+
+categories.forEach(c=>{
+
+const count=categoryProducts(c.name).length;
 
 box.innerHTML+=`
-
-<div
-class="cat"
-onclick="showCategory('${encodeURIComponent(c.name)}')"
-style="cursor:pointer"
->
-
+<div class="cat">
 ${categoryImageHtml(c)}
-
 <div class="catbody">
-
-<h3>
-${esc(c.name)}
-</h3>
-
-<div
-style="font-size:12px;color:#788"
->
-${count} محصول
-</div>
-
+<h3>${esc(c.name)}</h3>
+<div style="font-size:12px;color:#788">${count} محصول</div>
 <div class="mini">
-
-<button
-onclick="event.stopPropagation();showCategory('${encodeURIComponent(c.name)}')"
->
-مشاهده محصولات
-</button>
-
+<button onclick="showCategory('${encodeURIComponent(c.name)}')">مشاهده محصولات</button>
 </div>
-
 </div>
-
-</div>
-
-`;
+</div>`;
 
 });
 
-if(!filtered.length){
-
-box.innerHTML=`
-
-<div class="notice">
-دسته‌ای با این نام پیدا نشد.
-</div>
-
-`;
-
+if(!categories.length){
+box.innerHTML=`<div class="notice">هنوز دسته‌بندی‌ای ثبت نشده است.</div>`;
 }
 
 }
-
-
-/* ================= SHOW CATEGORY ================= */
 
 function showCategory(name){
 
@@ -2002,9 +1728,6 @@ behavior:"smooth"
 
 }
 
-
-/* ================= PRODUCT CARD ================= */
-
 function productCard(p){
 
 return`
@@ -2075,9 +1798,6 @@ onclick="deleteProduct('${p.id}')"
 
 }
 
-
-/* ================= ZOOM ================= */
-
 function zoom(enc){
 
 const src=
@@ -2085,9 +1805,7 @@ decodeURIComponent(enc);
 
 if(!src){
 
-showToast(
-"این محصول تصویر ندارد"
-);
+showToast("این محصول تصویر ندارد");
 
 return;
 
@@ -2125,9 +1843,6 @@ onclick="closeModal()"
 `);
 
 }
-
-
-/* ================= LOGIN ================= */
 
 function openLogin(){
 
@@ -2187,9 +1902,6 @@ input.focus();
 
 }
 
-
-/* ================= LOGIN ACTION ================= */
-
 function login(){
 
 const pass=
@@ -2218,9 +1930,6 @@ showToast(
 }
 
 }
-
-
-/* ================= ADMIN PANEL ================= */
 
 function openAdminPanel(){
 
@@ -2290,6 +1999,13 @@ onclick="openNotes()"
 </button>
 
 <button
+class="btn"
+onclick="openPhoneManager()"
+>
+☎️ ویرایش شماره تماس مدیریت
+</button>
+
+<button
 class="btn red"
 onclick="logout()"
 >
@@ -2301,9 +2017,6 @@ onclick="logout()"
 `);
 
 }
-
-
-/* ================= CATEGORY MANAGER ================= */
 
 function openCategoryManager(){
 
@@ -2318,7 +2031,6 @@ return;
 renderCategoryManager();
 
 }
-
 
 function renderCategoryManager(){
 
@@ -2386,12 +2098,7 @@ onclick="deleteCategory('${encodeURIComponent(c.name)}')"
 
 `).join("")}
 
-`);
-
-}
-
-
-/* ================= CATEGORY FORM ================= */
+`);}
 
 function openCategoryForm(oldName=""){
 
@@ -2412,12 +2119,9 @@ null;
 
 const c=
 categories.find(
-x=>
-norm(x.name)===
-norm(editingCategory)
+x=>norm(x.name)===norm(editingCategory)
 )
-||
-{};
+||{};
 
 openModal(`
 
@@ -2463,9 +2167,6 @@ onclick="saveCategory()"
 
 }
 
-
-/* ================= EDIT CATEGORY ================= */
-
 function editCategory(n){
 
 if(!admin){
@@ -2479,9 +2180,6 @@ return;
 openCategoryForm(n);
 
 }
-
-
-/* ================= SAVE CATEGORY ================= */
 
 function saveCategory(){
 
@@ -2537,9 +2235,7 @@ if(editingCategory){
 
 const oldCategory=
 categories.find(
-c=>
-norm(c.name)===
-norm(editingCategory)
+c=>norm(c.name)===norm(editingCategory)
 );
 
 const oldImages=
@@ -2548,8 +2244,7 @@ oldCategory?.images||[];
 categories=
 categories.map(
 c=>
-norm(c.name)===
-norm(editingCategory)
+norm(c.name)===norm(editingCategory)
 ?
 {
 ...c,
@@ -2569,8 +2264,7 @@ c
 products=
 products.map(
 p=>
-norm(p.category)===
-norm(editingCategory)
+norm(p.category)===norm(editingCategory)
 ?
 {...p,category:name}
 :
@@ -2598,9 +2292,6 @@ showToast(
 );
 
 }
-
-
-/* ================= DELETE CATEGORY ================= */
 
 function deleteCategory(n){
 
@@ -2634,9 +2325,7 @@ return;
 
 categories=
 categories.filter(
-c=>
-norm(c.name)!==
-norm(name)
+c=>norm(c.name)!==norm(name)
 );
 
 save();
@@ -2644,9 +2333,6 @@ save();
 renderCategoryManager();
 
 }
-
-
-/* ================= PRODUCT MANAGER ================= */
 
 function openProductManager(){
 
@@ -2746,9 +2432,6 @@ onclick="deleteProductFromManager('${p.id}')"
 `);
 
 }
-
-
-/* ================= PRODUCT FORM ================= */
 
 function openProductForm(id=null){
 
@@ -2850,6 +2533,7 @@ onclick="document.getElementById('camera').click()"
 >
 📷 دوربین
 </button>
+
 <button
 class="btn light"
 onclick="document.getElementById('gallery').click()"
@@ -2859,11 +2543,7 @@ onclick="document.getElementById('gallery').click()"
 
 </div>
 
-<div
-id="photoPreview"
-class="media-preview"
-style="margin-top:10px"
->
+<div id="photoPreview">
 
 ${
 currentPhoto
@@ -2872,11 +2552,10 @@ currentPhoto
 <img
 src="${esc(currentPhoto)}"
 style="
-width:160px;
-height:120px;
+width:120px;
+height:90px;
 object-fit:cover;
 border-radius:10px;
-border:1px solid #ddd
 "
 >
 `
@@ -2890,7 +2569,7 @@ border:1px solid #ddd
 class="btn gold"
 onclick="saveProduct()"
 >
-💾 ذخیره محصول
+ذخیره محصول
 </button>
 
 </div>
@@ -2898,9 +2577,6 @@ onclick="saveProduct()"
 `);
 
 }
-
-
-/* ================= PICK PRODUCT IMAGE ================= */
 
 function picked(input){
 
@@ -2923,31 +2599,11 @@ input.files[0];
 if(!f)
 return;
 
-if(
-!f.type ||
-!f.type.startsWith("image/")
-){
-
-input.value="";
-
-showToast(
-"فایل انتخاب‌شده تصویر نیست"
-);
-
-return;
-
-}
-
-showToast(
-"در حال آماده‌سازی تصویر..."
-);
-
 compressImage(
 f,
-600,
-0.45
-)
-.then(data=>{
+1200,
+0.68
+).then(data=>{
 
 currentPhoto=data;
 
@@ -2963,11 +2619,10 @@ x.innerHTML=`
 <img
 src="${esc(currentPhoto)}"
 style="
-width:160px;
-height:120px;
+width:120px;
+height:90px;
 object-fit:cover;
 border-radius:10px;
-border:1px solid #ddd
 "
 >
 
@@ -2975,18 +2630,9 @@ border:1px solid #ddd
 
 }
 
-showToast(
-"تصویر آماده ذخیره است"
-);
+}).catch(()=>{
 
-})
-.catch(err=>{
-
-console.error(err);
-
-showToast(
-"خواندن یا آماده‌سازی تصویر انجام نشد"
-);
+showToast("خواندن تصویر انجام نشد");
 
 });
 
@@ -2994,99 +2640,45 @@ input.value="";
 
 }
 
+function compressImage(file,maxSize=1200,quality=0.68){
 
-/* ================= COMPRESS IMAGE ================= */
+return new Promise((resolve,reject)=>{
 
-function compressImage(
-file,
-maxSize=600,
-quality=0.45
-){
-
-return new Promise(
-(resolve,reject)=>{
-
-const reader=
-new FileReader();
+const reader=new FileReader();
 
 reader.onload=e=>{
 
-const img=
-new Image();
+const img=new Image();
 
 img.onload=()=>{
 
-let w=
-img.naturalWidth ||
-img.width;
+let w=img.width;
+let h=img.height;
 
-let h=
-img.naturalHeight ||
-img.height;
+if(w>maxSize || h>maxSize){
 
-if(!w || !h){
+if(w>h){
 
-reject(
-new Error("invalid image")
-);
+h=Math.round(h*maxSize/w);
+w=maxSize;
 
-return;
+}else{
+
+w=Math.round(w*maxSize/h);
+h=maxSize;
 
 }
 
-const scale=
-Math.min(
-1,
-maxSize/w,
-maxSize/h
-);
-
-w=
-Math.max(
-1,
-Math.round(w*scale)
-);
-
-h=
-Math.max(
-1,
-Math.round(h*scale)
-);
+}
 
 const canvas=
-document.createElement(
-"canvas"
-);
+document.createElement("canvas");
 
 canvas.width=w;
 canvas.height=h;
 
 const ctx=
-canvas.getContext(
-"2d",
-{alpha:false}
-);
-
-if(!ctx){
-
-reject(
-new Error(
-"canvas unavailable"
-)
-);
-
-return;
-
-}
-
-ctx.fillStyle="#fff";
-
-ctx.fillRect(
-0,
-0,
-w,
-h
-);
+canvas.getContext("2d");
 
 ctx.drawImage(
 img,
@@ -3096,129 +2688,22 @@ w,
 h
 );
 
-let q=quality;
-
-let data=
+resolve(
 canvas.toDataURL(
 "image/jpeg",
-q
-);
-
-while(
-data.length>180000 &&
-q>0.18
-){
-
-q-=0.06;
-
-data=
-canvas.toDataURL(
-"image/jpeg",
-q
-);
-
-}
-
-if(data.length>260000){
-
-const scale2=
-Math.min(
-1,
-450/w,
-450/h
-);
-
-const w2=
-Math.max(
-1,
-Math.round(w*scale2)
-);
-
-const h2=
-Math.max(
-1,
-Math.round(h*scale2)
-);
-
-canvas.width=w2;
-canvas.height=h2;
-
-const ctx2=
-canvas.getContext(
-"2d",
-{alpha:false}
-);
-
-ctx2.fillStyle="#fff";
-
-ctx2.fillRect(
-0,
-0,
-w2,
-h2
-);
-
-ctx2.drawImage(
-img,
-0,
-0,
-w2,
-h2
-);
-
-q=0.30;
-
-data=
-canvas.toDataURL(
-"image/jpeg",
-q
-);
-
-while(
-data.length>180000 &&
-q>0.14
-){
-
-q-=0.04;
-
-data=
-canvas.toDataURL(
-"image/jpeg",
-q
-);
-
-}
-
-}
-
-resolve(data);
-
-};
-
-img.onerror=()=>{
-
-reject(
-new Error(
-"image decode failed"
+quality
 )
 );
 
 };
 
-img.src=
-e.target.result;
+img.onerror=reject;
+
+img.src=e.target.result;
 
 };
 
-reader.onerror=()=>{
-
-reject(
-new Error(
-"file read failed"
-)
-);
-
-};
+reader.onerror=reject;
 
 reader.readAsDataURL(file);
 
@@ -3226,10 +2711,7 @@ reader.readAsDataURL(file);
 
 }
 
-
-/* ================= SAVE PRODUCT ================= */
-
-async function saveProduct(){
+function saveProduct(){
 
 if(!admin){
 
@@ -3255,32 +2737,10 @@ return;
 
 }
 
-const oldProduct=
-editingProduct ||
-{};
-
-const photo=
-currentPhoto ||
-oldProduct.photo ||
-"";
-
-if(
-photo &&
-photo.length>260000
-){
-
-showToast(
-"تصویر هنوز بزرگ است؛ دوباره انتخابش کنید"
-);
-
-return;
-
-}
-
 const data={
 
 id:
-oldProduct.id ||
+editingProduct?.id||
 Date.now().toString(),
 
 name:name,
@@ -3308,18 +2768,13 @@ document
 .value
 .trim(),
 
-photo:photo,
+photo:currentPhoto,
 
 createdAt:
-oldProduct.createdAt ||
+editingProduct?.createdAt||
 Date.now()
 
 };
-
-const previousProducts=
-products.slice();
-
-try{
 
 if(editingProduct){
 
@@ -3339,57 +2794,13 @@ products.push(data);
 
 }
 
-if(
-previousProducts.length &&
-!localStorage.getItem(
-"verona_products_backup"
-)
-){
-
-try{
-
-localStorage.setItem(
-"verona_products_backup",
-JSON.stringify(
-previousProducts
-)
-);
-
-}catch(e){}
-
-}
-
-localStorage.setItem(
-PRODUCTS_KEY,
-JSON.stringify(products)
-);
-
-const saved=
-JSON.parse(
-localStorage.getItem(
-PRODUCTS_KEY
-) ||
-"[]"
-)
-.find(
-p=>p.id===data.id
-);
-
-if(!saved){
-
-throw new Error(
-"save verification failed"
-);
-
-}
+save();
 
 editingProduct=null;
-
 currentPhoto="";
 
 if(
-norm(selectedCategory)===
-norm(data.category)
+norm(selectedCategory)===norm(data.category)
 ){
 
 closeModal();
@@ -3400,8 +2811,6 @@ selectedCategory
 
 }else{
 
-closeModal();
-
 openProductManager();
 
 }
@@ -3410,23 +2819,7 @@ showToast(
 "محصول با موفقیت ذخیره شد"
 );
 
-}catch(err){
-
-console.error(err);
-
-products=
-previousProducts;
-
-showToast(
-"ذخیره انجام نشد؛ تصویر خیلی بزرگ است یا حافظه مرورگر پر شده است"
-);
-
 }
-
-}
-
-
-/* ================= EDIT PRODUCT ================= */
 
 function editProduct(id){
 
@@ -3438,27 +2831,39 @@ return;
 
 }
 
-const p=
-products.find(
-x=>x.id===id
-);
+openProductForm(id);
 
-if(!p){
+}
 
-showToast(
-"محصول پیدا نشد"
-);
+function deleteProductFromManager(id){
+
+if(!admin){
+
+openLogin();
 
 return;
 
 }
 
-openProductForm(id);
+if(
+!confirm("این محصول حذف شود؟")
+)
+return;
+
+products=
+products.filter(
+p=>p.id!==id
+);
+
+save();
+
+openProductManager();
+
+showToast(
+"محصول حذف شد"
+);
 
 }
-
-
-/* ================= DELETE PRODUCT ================= */
 
 function deleteProduct(id){
 
@@ -3470,24 +2875,14 @@ return;
 
 }
 
-const p=
-products.find(
-x=>x.id===id
-);
-
-if(!p)
-return;
-
 if(
-!confirm(
-`محصول «${p.name}» حذف شود؟`
-)
+!confirm("محصول حذف شود؟")
 )
 return;
 
 products=
 products.filter(
-x=>x.id!==id
+p=>p.id!==id
 );
 
 save();
@@ -3502,942 +2897,9 @@ showToast(
 
 }
 
-
-/* ================= DELETE PRODUCT FROM MANAGER ================= */
-
-function deleteProductFromManager(id){
-
-if(!admin){
-
-openLogin();
-
-return;
-
-}
-
-const p=
-products.find(
-x=>x.id===id
-);
-
-if(!p)
-return;
-
-if(
-!confirm(
-`محصول «${p.name}» حذف شود؟`
-)
-)
-return;
-
-products=
-products.filter(
-x=>x.id!==id
-);
-
-save();
-
-openProductManager();
-
-showToast(
-"محصول حذف شد"
-);
-
-}
-
-
-/* ================= SEARCH HOME ================= */
-
-function searchHome(){
-
-const q=
-norm(
-document
-.getElementById("search")
-.value
-);
-
-if(!q){
-
-return;
-
-}
-
-const category=
-categories.find(
-c=>
-norm(c.name).includes(q)
-);
-
-const product=
-products.find(
-p=>
-norm(p.name).includes(q) ||
-norm(p.category).includes(q) ||
-norm(p.description).includes(q)
-);
-
-if(category){
-
-showCategory(
-category.name
-);
-
-return;
-
-}
-
-if(product){
-
-showCategory(
-product.category
-);
-
-return;
-
-}
-
-showToast(
-"موردی پیدا نشد"
-);
-
-}
-
-
-/* ================= CALCULATOR ================= */
-
-function openCalculator(){
-
-openModal(`
-
-<div class="modalhead">
-
-<h3>
-📐 محاسبه‌گر متراژ مورد نیاز
-</h3>
-
-<button
-class="btn light"
-onclick="closeModal()"
->
-بستن
-</button>
-
-</div>
-
-<div class="calculator-box">
-
-<div class="notice">
-
-نتیجه محاسبه تقریبی و پیشنهادی است و با توجه به برش، پرت، شرایط پروژه و نحوه اجرا ممکن است تغییر کند.
-
-</div>
-
-<div
-class="form"
-style="margin-top:15px"
->
-
-<div class="calc-field">
-
-<label
-class="calc-label"
->
-نوع سنگ
-</label>
-
-<select
-id="calcType"
-class="calc-input"
-onchange="renderCalcFields()"
->
-
-<option value="floor">
-سنگ کف
-</option>
-
-<option value="stairs">
-سنگ پله
-</option>
-
-<option value="facade">
-سنگ نما
-</option>
-
-<option value="understairs">
-زیر پله / پیشانی
-</option>
-
-<option value="counter">
-صفحه کابینت / کانتر
-</option>
-
-<option value="decor">
-المان و زیباسازی
-</option>
-
-</select>
-
-</div>
-
-<div id="calcFields"></div>
-
-<div
-id="calcResult"
-class="calc-result"
-style="display:none"
-></div>
-
-</div>
-
-</div>
-
-`);
-
-renderCalcFields();
-
-}
-
-
-/* ================= CALCULATOR FIELDS ================= */
-
-function renderCalcFields(){
-
-const type=
-document
-.getElementById("calcType")
-.value;
-
-const box=
-document
-.getElementById("calcFields");
-
-const result=
-document
-.getElementById("calcResult");
-
-result.style.display="none";
-
-if(type==="counter"){
-
-box.innerHTML=`
-
-<div class="notice">
-
-به دلیل نیاز به اندازه‌گیری دقیق، برش‌های خاص و جزئیات اجرایی، محاسبه صفحه کابینت و کانتر از طریق سایت انجام نمی‌شود.
-
-برای مشاوره، اندازه‌گیری و اعلام قیمت با مدیریت تماس بگیرید.
-
-</div>
-
-<button
-class="btn gold"
-onclick="openContact()"
-style="margin-top:12px"
->
-☎️ تماس با مدیریت
-</button>
-
-`;
-
-return;
-
-}
-
-if(type==="decor"){
-
-box.innerHTML=`
-
-<div class="notice">
-
-برای المان و زیباسازی محاسبه متراژ انجام نمی‌شود.
-
-قیمت هر محصول در مشخصات همان محصول درج خواهد شد.
-
-</div>
-
-`;
-
-return;
-
-}
-
-if(type==="floor"){
-
-box.innerHTML=`
-
-<div class="row">
-
-<div class="calc-field">
-
-<label class="calc-label">
-طول فضا (متر)
-</label>
-
-<input
-id="floorL"
-class="calc-input"
-type="number"
-step="0.01"
-placeholder="مثلاً 5"
->
-
-</div>
-
-<div class="calc-field">
-
-<label class="calc-label">
-عرض فضا (متر)
-</label>
-
-<input
-id="floorW"
-class="calc-input"
-type="number"
-step="0.01"
-placeholder="مثلاً 4"
->
-
-</div>
-
-</div>
-
-<div class="calc-field">
-
-<label class="calc-label">
-مساحت هر قطعه (مترمربع)
-</label>
-
-<input
-id="pieceArea"
-class="calc-input"
-type="number"
-step="0.0001"
-placeholder="مثلاً 0.72"
->
-
-</div>
-
-<button
-class="btn gold"
-onclick="calculateFloor()"
->
-محاسبه
-</button>
-
-`;
-
-return;
-
-}
-
-if(type==="stairs"){
-
-box.innerHTML=`
-
-<div class="calc-field">
-
-<label class="calc-label">
-تعداد پله
-</label>
-
-<input
-id="stairCount"
-class="calc-input"
-type="number"
-step="1"
-placeholder="مثلاً 15"
->
-
-</div>
-
-<div class="row">
-
-<div class="calc-field">
-
-<label class="calc-label">
-طول هر پله (متر)
-</label>
-
-<input
-id="stairL"
-class="calc-input"
-type="number"
-step="0.01"
-placeholder="مثلاً 1.20"
->
-
-</div>
-
-<div class="calc-field">
-
-<label class="calc-label">
-عرض هر پله (متر)
-</label>
-
-<input
-id="stairW"
-class="calc-input"
-type="number"
-step="0.01"
-placeholder="مثلاً 0.30"
->
-
-</div>
-
-</div>
-
-<button
-class="btn gold"
-onclick="calculateStairs()"
->
-محاسبه
-</button>
-
-`;
-
-return;
-
-}
-
-if(type==="facade"){
-
-box.innerHTML=`
-
-<div class="row">
-
-<div class="calc-field">
-
-<label class="calc-label">
-طول نما (متر)
-</label>
-
-<input
-id="facadeL"
-class="calc-input"
-type="number"
-step="0.01"
-placeholder="مثلاً 10"
->
-
-</div>
-
-<div class="calc-field">
-
-<label class="calc-label">
-ارتفاع نما (متر)
-</label>
-
-<input
-id="facadeH"
-class="calc-input"
-type="number"
-step="0.01"
-placeholder="مثلاً 3"
->
-
-</div>
-
-</div>
-
-<div class="calc-field">
-
-<label class="calc-label">
-مساحت تقریبی هر قطعه (مترمربع)
-</label>
-
-<input
-id="facadePiece"
-class="calc-input"
-type="number"
-step="0.0001"
-placeholder="مثلاً 0.36"
->
-
-</div>
-
-<button
-class="btn gold"
-onclick="calculateFacade()"
->
-محاسبه
-</button>
-
-`;
-
-return;
-
-}
-
-if(type==="understairs"){
-
-box.innerHTML=`
-
-<div class="notice">
-
-برای زیر پله / پیشانی، محاسبه بر اساس طول × عرض انجام می‌شود.
-
-</div>
-
-<div class="row">
-
-<div class="calc-field">
-
-<label class="calc-label">
-طول (متر)
-</label>
-
-<input
-id="underL"
-class="calc-input"
-type="number"
-step="0.01"
-placeholder="مثلاً 1.20"
->
-
-</div>
-
-<div class="calc-field">
-
-<label class="calc-label">
-عرض یا ارتفاع (متر)
-</label>
-
-<input
-id="underW"
-class="calc-input"
-type="number"
-step="0.01"
-placeholder="مثلاً 0.15"
->
-
-</div>
-
-</div>
-
-<button
-class="btn gold"
-onclick="calculateUnder()"
->
-محاسبه
-</button>
-
-`;
-
-}
-
-}
-
-
-/* ================= CALC FLOOR ================= */
-
-function calculateFloor(){
-
-const l=
-parseFloat(
-document.getElementById("floorL").value
-);
-
-const w=
-parseFloat(
-document.getElementById("floorW").value
-);
-
-const piece=
-parseFloat(
-document.getElementById("pieceArea").value
-);
-
-if(
-!(l>0) ||
-!(w>0) ||
-!(piece>0)
-){
-
-showToast(
-"همه مقادیر را درست وارد کنید"
-);
-
-return;
-
-}
-
-const area=l*w;
-
-const count=
-Math.ceil(area/piece*1.08);
-
-showCalcResult(
-`
-مساحت مورد نیاز:
-<strong>${area.toFixed(2)} مترمربع</strong>
-<br>
-تعداد تقریبی قطعات با ۸٪ پرت:
-<strong>${count} عدد</strong>
-`
-);
-
-}
-
-
-/* ================= CALC STAIRS ================= */
-
-function calculateStairs(){
-
-const count=
-parseInt(
-document.getElementById("stairCount").value
-);
-
-const l=
-parseFloat(
-document.getElementById("stairL").value
-);
-
-const w=
-parseFloat(
-document.getElementById("stairW").value
-);
-
-if(
-!(count>0) ||
-!(l>0) ||
-!(w>0)
-){
-
-showToast(
-"همه مقادیر را درست وارد کنید"
-);
-
-return;
-
-}
-
-const area=
-count*l*w;
-
-const total=
-area*1.08;
-
-showCalcResult(
-`
-مساحت خالص پله‌ها:
-<strong>${area.toFixed(2)} مترمربع</strong>
-<br>
-مساحت پیشنهادی با ۸٪ پرت:
-<strong>${total.toFixed(2)} مترمربع</strong>
-<br>
-تعداد پله:
-<strong>${count} عدد</strong>
-`
-);
-
-}
-
-
-/* ================= CALC FACADE ================= */
-
-function calculateFacade(){
-
-const l=
-parseFloat(
-document.getElementById("facadeL").value
-);
-
-const h=
-parseFloat(
-document.getElementById("facadeH").value
-);
-
-const piece=
-parseFloat(
-document.getElementById("facadePiece").value
-);
-
-if(
-!(l>0) ||
-!(h>0) ||
-!(piece>0)
-){
-
-showToast(
-"همه مقادیر را درست وارد کنید"
-);
-
-return;
-
-}
-
-const area=l*h;
-
-const total=
-area*1.10;
-
-const count=
-Math.ceil(
-total/piece
-);
-
-showCalcResult(
-`
-مساحت نمای خالص:
-<strong>${area.toFixed(2)} مترمربع</strong>
-<br>
-مساحت پیشنهادی با ۱۰٪ پرت:
-<strong>${total.toFixed(2)} مترمربع</strong>
-<br>
-تعداد تقریبی قطعات:
-<strong>${count} عدد</strong>
-`
-);
-
-}
-
-
-/* ================= CALC UNDER ================= */
-
-function calculateUnder(){
-
-const l=
-parseFloat(
-document.getElementById("underL").value
-);
-
-const w=
-parseFloat(
-document.getElementById("underW").value
-);
-
-if(
-!(l>0) ||
-!(w>0)
-){
-
-showToast(
-"طول و عرض را درست وارد کنید"
-);
-
-return;
-
-}
-
-const area=l*w;
-
-const total=
-area*1.08;
-
-showCalcResult(
-`
-مساحت خالص:
-<strong>${area.toFixed(2)} مترمربع</strong>
-<br>
-مساحت پیشنهادی با ۸٪ پرت:
-<strong>${total.toFixed(2)} مترمربع</strong>
-`
-);
-
-}
-
-
-/* ================= CALC RESULT ================= */
-
-function showCalcResult(html){
-
-const result=
-document.getElementById(
-"calcResult"
-);
-
-result.innerHTML=html;
-
-result.style.display="block";
-
-}
-
-
-/* ================= CONTACT ================= */
-
-function openContact(){
-
-const phone=
-localStorage.getItem(
-PHONE_KEY
-) ||
-"09140824203";
-
-openModal(`
-
-<div class="modalhead">
-
-<h3>
-☎️ تماس با مدیریت
-</h3>
-
-<button
-class="btn light"
-onclick="closeModal()"
->
-بستن
-</button>
-
-</div>
-
-<div class="panel">
-
-<h3
-style="
-margin-top:0;
-color:var(--green)
-"
->
-مدیریت فروشگاه سنگ ورونا
-</h3>
-
-<div
-class="notice"
->
-ولی‌الله قائدی
-<br>
-شهرکرد، خیابان امیرکبیر غربی،
-روبروی آهن‌آلات سپاهان
-<br>
-شنبه تا پنجشنبه، ۸ صبح تا ۸ شب
-</div>
-
-<div
-class="actions"
-style="margin-top:13px"
->
-
-<a
-href="tel:${esc(phone)}"
-class="btn"
-style="text-decoration:none"
->
-📞 تماس با مدیریت
-</a>
-
-<a
-href="https://t.me/Fantastic_4450"
-target="_blank"
-class="btn light"
-style="text-decoration:none"
->
-✈️ تلگرام
-</a>
-
-</div>
-
-</div>
-
-`);
-
-}
-
-
-/* ================= PHONE MANAGER ================= */
-
-function openPhoneManager(){
-
-if(!admin){
-
-openLogin();
-
-return;
-
-}
-
-const phone=
-localStorage.getItem(
-PHONE_KEY
-) ||
-"09140824203";
-
-openModal(`
-
-<div class="modalhead">
-
-<h3>
-☎️ شماره مدیریت
-</h3>
-
-<button
-class="btn light"
-onclick="closeModal()"
->
-بستن
-</button>
-
-</div>
-
-<div class="form">
-
-<input
-id="managerPhone"
-inputmode="tel"
-value="${esc(phone)}"
-placeholder="شماره تماس مدیریت"
->
-
-<button
-class="btn gold"
-onclick="savePhone()"
->
-ذخیره شماره
-</button>
-
-</div>
-
-`);
-
-}
-
-
-/* ================= SAVE PHONE ================= */
-
-function savePhone(){
-
-const value=
-document
-.getElementById("managerPhone")
-.value
-.trim();
-
-if(!value){
-
-showToast(
-"شماره را وارد کنید"
-);
-
-return;
-
-}
-
-localStorage.setItem(
-PHONE_KEY,
-value
-);
-
-showToast(
-"شماره مدیریت ذخیره شد"
-);
-
-closeModal();
-
-}
-
-
-/* ================= LOGOUT ================= */
-
 function logout(){
 
 admin=false;
-
-editingProduct=null;
-
-editingCategory=null;
-
-currentPhoto="";
 
 closeModal();
 
@@ -4447,69 +2909,16 @@ showToast(
 
 }
 
-
-/* ================= NOTES ================= */
-
-function getNotes(){
-
-try{
-
-const data=
-JSON.parse(
-localStorage.getItem(
-"verona_notes"
-) ||
-"[]"
-);
-
-return Array.isArray(data)
-?
-data
-:
-[];
-
-}catch(e){
-
-return[];
-
-}
-
-}
-
-
-function saveNotes(notes){
-
-try{
-
-localStorage.setItem(
-"verona_notes",
-JSON.stringify(notes)
-);
-
-}catch(e){
-
-showToast(
-"ذخیره یادداشت انجام نشد"
-);
-
-}
-
-}
-
-
-/* ================= OPEN NOTES ================= */
-
-function openNotes(){
-
-const notes=
-getNotes();
+function openCalculator(){
 
 openModal(`
 
+<div class="calculator-box">
+
 <div class="modalhead">
 
-<h3>
-📝 یادداشت‌ها
+<h3 class="calc-title">
+📐 محاسبه‌گر تبدیل واحد
 </h3>
 
 <button
@@ -4521,39 +2930,126 @@ onclick="closeModal()"
 
 </div>
 
-${
-admin
-?
-`
+<div class="calc-subtitle">
+
+محاسبات فقط بر اساس واحد «متر» انجام می‌شود.
+برای تبدیل مترمربع به متر طول یا متر طول به مترمربع، عرض سنگ را نیز وارد کنید.
+
+</div>
+
+<div class="notice">
+
+⚠️ نتیجه محاسبه تقریبی است و با توجه به برش، پرت، نوع اجرا و شرایط پروژه ممکن است تغییر کند.
+
+</div>
+
+<div
+class="form"
+style="margin-top:18px"
+>
+
+<div class="calc-field">
+
+<label class="calc-label">
+نوع تبدیل
+</label>
+
+<select
+id="calcType"
+class="calc-input"
+onchange="updateCalculatorFields()"
+>
+
+<option value="areaToLength">
+مترمربع ← متر طول
+</option>
+
+<option value="lengthToArea">
+متر طول ← مترمربع
+</option>
+
+</select>
+
+</div>
+
+<div class="calc-field">
+
+<label
+id="calcAmountLabel"
+class="calc-label"
+>
+مقدار مترمربع
+</label>
+
+<input
+id="calcAmount"
+class="calc-input"
+type="number"
+step="0.01"
+inputmode="decimal"
+placeholder="مثلاً 25"
+>
+
+</div>
+
+<div class="calc-field">
+
+<label class="calc-label">
+عرض سنگ به متر
+</label>
+
+<input
+id="calcWidth"
+class="calc-input"
+type="number"
+step="0.01"
+inputmode="decimal"
+placeholder="مثلاً 0.40"
+>
+
+</div>
+
 <button
 class="btn gold"
-onclick="openNoteForm()"
-style="margin-bottom:13px"
+style="
+width:100%;
+padding:15px;
+font-size:16px;
+"
+onclick="calculateConversion()"
 >
-➕ یادداشت جدید
+محاسبه
 </button>
-`
-:
-""
-}
 
-<div id="notesList">
+<button
+class="btn"
+style="
+width:100%;
+padding:13px;
+font-size:15px;
+"
+onclick="startCalculatorVoice()"
+id="calcVoiceButton"
+>
+🎙️ گفتن محاسبه با صدا
+</button>
 
-${
-notes.length
-?
-notes
-.slice()
-.reverse()
-.map(noteCard)
-.join("")
-:
-`
-<div class="notice">
-هنوز یادداشتی ثبت نشده است.
+<div
+id="calcVoiceStatus"
+style="
+text-align:center;
+font-size:12px;
+color:#777;
+line-height:1.8;
+"
+></div>
+
+<div
+id="calcResult"
+class="calc-result hidden"
+></div>
+
 </div>
-`
-}
 
 </div>
 
@@ -4561,176 +3057,848 @@ notes
 
 }
 
+function updateCalculatorFields(){
 
-/* ================= NOTE CARD ================= */
+const type=
+document
+.getElementById("calcType")
+.value;
 
-function noteCard(n){
+const label=
+document
+.getElementById("calcAmountLabel");
 
-return`
+const input=
+document
+.getElementById("calcAmount");
 
-<div class="note-item">
+if(type==="areaToLength"){
 
-<div class="note-text">
-${esc(n.text||"")}
-</div>
+label.textContent=
+"مقدار مترمربع";
 
-${
-n.image
-?
-`
-<div class="note-media">
+input.placeholder=
+"مثلاً 25";
 
-<img
-class="note-photo"
-src="${esc(n.image)}"
-onclick="zoom('${encodeURIComponent(n.image)}')"
->
+}else{
 
-</div>
-`
-:
-""
+label.textContent=
+"مقدار متر طول";
+
+input.placeholder=
+"مثلاً 30";
+
 }
 
-${
-n.audio
-?
-`
-<div class="note-media">
-
-<audio
-class="note-audio"
-controls
-src="${esc(n.audio)}"
->
-</audio>
-
-</div>
-`
-:
-""
 }
 
-<div class="note-meta">
+function calculateConversion(){
 
-<span>
-${esc(n.date||"")}
-</span>
+const type=
+document
+.getElementById("calcType")
+.value;
 
-${
-admin
-?
-`
-<button
-class="note-delete"
-onclick="deleteNote('${n.id}')"
->
-حذف
-</button>
-`
-:
-""
+const amount=
+parseFloat(
+document
+.getElementById("calcAmount")
+.value
+);
+
+const width=
+parseFloat(
+document
+.getElementById("calcWidth")
+.value
+);
+
+const result=
+document
+.getElementById("calcResult");
+
+if(
+!amount ||
+amount<=0
+){
+
+showToast(
+"مقدار را به‌درستی وارد کنید"
+);
+
+return;
+
 }
 
+if(
+!width ||
+width<=0
+){
+
+showToast(
+"عرض سنگ را به متر وارد کنید"
+);
+
+return;
+
+}
+
+let value;if(type==="areaToLength"){
+
+value=
+amount/width;
+
+result.innerHTML=`
+
+<div>
+${amount} مترمربع ÷ ${width} متر
 </div>
 
+<div style="margin-top:7px">
+مقدار مورد نیاز:
+<strong>
+${formatNumber(value)} متر طول
+</strong>
+</div>
+
+`;
+
+}else{
+
+value=
+amount*width;
+
+result.innerHTML=`
+
+<div>
+${amount} متر طول × ${width} متر
+</div>
+
+<div style="margin-top:7px">
+مساحت:
+<strong>
+${formatNumber(value)} مترمربع
+</strong>
 </div>
 
 `;
 
 }
 
+result.classList.remove("hidden");
 
-/* ================= NOTE FORM ================= */
+}
 
-function openNoteForm(){
+function formatNumber(n){
 
-if(!admin){
+return Number(n.toFixed(3))
+.toLocaleString("fa-IR");
 
-openLogin();
+}
+
+function startCalculatorVoice(){
+
+const SpeechRecognition=
+window.SpeechRecognition||
+window.webkitSpeechRecognition;
+
+if(!SpeechRecognition){
+
+showToast(
+"مرورگر شما از تشخیص صدای فارسی پشتیبانی نمی‌کند"
+);
 
 return;
 
 }
 
-currentNoteImage="";
+const status=
+document.getElementById("calcVoiceStatus");
 
-currentNoteAudio="";
+const button=
+document.getElementById("calcVoiceButton");
+
+if(!status || !button)
+return;
+
+const recognition=
+new SpeechRecognition();
+
+recognition.lang="fa-IR";
+recognition.continuous=false;
+recognition.interimResults=false;
+recognition.maxAlternatives=3;
+
+status.textContent=
+"🎙️ گوش می‌دهم... مثال: ۴۰ متر طول، عرض ۳۰ سانت";
+
+button.textContent=
+"🔴 در حال شنیدن...";
+
+button.disabled=true;
+
+recognition.onresult=function(event){
+
+const transcript=
+event.results?.[0]?.[0]?.transcript||
+"";
+
+status.textContent=
+"شنیده شد: «"+transcript+"»";
+
+const parsed=
+parseVoiceCalculation(transcript);
+
+if(!parsed){
+
+showToast(
+"نتوانستم مقدار و عرض را دقیق تشخیص بدهم"
+);
+
+button.textContent=
+"🎙️ گفتن محاسبه با صدا";
+
+button.disabled=false;
+
+return;
+
+}
+
+applyVoiceCalculation(parsed);
+
+button.textContent=
+"🎙️ گفتن محاسبه با صدا";
+
+button.disabled=false;
+
+};
+
+recognition.onerror=function(event){
+
+button.textContent=
+"🎙️ گفتن محاسبه با صدا";
+
+button.disabled=false;
+
+status.textContent=
+"تشخیص صدا انجام نشد.";
+
+if(event.error==="not-allowed"){
+
+showToast(
+"اجازه دسترسی به میکروفون داده نشده است"
+);
+
+}else{
+
+showToast(
+"صدای شما واضح تشخیص داده نشد"
+);
+
+}
+
+};
+
+recognition.onend=function(){
+
+button.textContent=
+"🎙️ گفتن محاسبه با صدا";
+
+button.disabled=false;
+
+};
+
+try{
+
+recognition.start();
+
+}catch(e){
+
+button.textContent=
+"🎙️ گفتن محاسبه با صدا";
+
+button.disabled=false;
+
+showToast(
+"شروع تشخیص صدا ممکن نشد"
+);
+
+}
+
+}
+
+function normalizePersianNumbers(text){
+
+return String(text||"")
+.replace(/[۰-۹]/g,d=>
+"۰۱۲۳۴۵۶۷۸۹".indexOf(d)
+)
+.replace(/[٠-٩]/g,d=>
+"٠١٢٣٤٥٦٧٨٩".indexOf(d)
+);
+
+}
+
+const numberWords={
+
+"صفر":0,
+"یک":1,
+"اول":1,
+"دو":2,
+"سه":3,
+"چهار":4,
+"پنج":5,
+"شش":6,
+"هفت":7,
+"هشت":8,
+"نه":9,
+"ده":10,
+
+"یازده":11,
+"دوازده":12,
+"سیزده":13,
+"چهارده":14,
+"پانزده":15,
+"شانزده":16,
+"هفده":17,
+"هجده":18,
+"نوزده":19,
+
+"بیست":20,
+"سی":30,
+"چهل":40,
+"پنجاه":50,
+"شصت":60,
+"هفتاد":70,
+"هشتاد":80,
+"نود":90,
+
+"صد":100,
+"یکصد":100,
+"دویست":200,
+"سیصد":300,
+"چهارصد":400,
+"پانصد":500,
+"ششصد":600,
+"هفتصد":700,
+"هشتصد":800,
+"نهصد":900
+
+};
+
+function parseNumberWords(text){
+
+let s=
+String(text||"")
+.replace(/‌/g," ")
+.replace(/[،,]/g," ")
+.trim();
+
+if(!s)
+return null;
+
+const direct=
+normalizePersianNumbers(s)
+.match(/-?\d+(?:[.٫]\d+)?/);
+
+if(direct){
+
+return parseFloat(
+direct[0].replace("٫",".")
+);
+
+}
+
+if(
+s.includes("نیم")||
+s.includes("نیمه")
+){
+
+if(
+s.includes("یک و نیم")||
+s.includes("یک‌ونیم")
+||
+s==="یک و نیم"
+){
+
+return 1.5;
+
+}
+
+return 0.5;
+
+}
+
+const tokens=
+s.split(/\s+|-/)
+.filter(Boolean);
+
+let total=0;
+let found=false;
+
+for(const token of tokens){
+
+if(numberWords[token]!==undefined){
+
+total+=numberWords[token];
+found=true;
+
+}
+
+}
+
+return found ? total : null;
+
+}
+
+function extractNumberBefore(text,pattern){
+
+const index=
+text.search(pattern);
+
+if(index<0)
+return null;
+
+const before=
+text.slice(0,index);
+
+const normalized=
+normalizePersianNumbers(before);
+
+const match=
+normalized.match(
+/(\d+(?:[.]\d+)?)\s*$/
+);
+
+if(match){
+
+return parseFloat(match[1]);
+
+}
+
+const words=
+before
+.trim()
+.split(/\s+/)
+.slice(-4)
+.join(" ");
+
+return parseNumberWords(words);
+
+}
+
+function extractWidth(text){
+
+const normalized=
+normalizePersianNumbers(
+text
+.replace(/‌/g," ")
+);
+
+const cmRegex=
+/(?:عرض\s*)?(\d+(?:[.]\d+)?)\s*(?:سانت|سانتی|سانتیمتر|سانتی‌متر)/i;
+
+const cmMatch=
+normalized.match(cmRegex);
+
+if(cmMatch){
+
+return parseFloat(cmMatch[1])/100;
+
+}
+
+const afterWidth=
+normalized.match(
+/عرض\s*([۰-۹\d]+(?:[.]\d+)?)/i
+);
+
+if(afterWidth){
+
+const n=
+parseFloat(
+afterWidth[1]
+);
+
+if(n>0){
+
+if(n>10)
+return n/100;
+
+return n;
+
+}
+
+}
+
+const widthIndex=
+normalized.indexOf("عرض");
+
+if(widthIndex>=0){
+
+const rest=
+normalized.slice(widthIndex+4);
+
+const cm=
+rest.match(
+/(\d+(?:[.]\d+)?)\s*(?:سانت|سانتی|سانتیمتر)/
+);
+
+if(cm){
+
+return parseFloat(cm[1])/100;
+
+}
+
+const words=
+rest
+.trim()
+.split(/\s+/)
+.slice(0,4)
+.join(" ");
+
+const wordNumber=
+parseNumberWords(words);
+
+if(wordNumber!==null){
+
+if(wordNumber>10)
+return wordNumber/100;
+
+return wordNumber;
+
+}
+
+}
+
+return null;
+
+}
+
+function parseVoiceCalculation(text){
+
+let s=
+String(text||"")
+.toLowerCase()
+.replace(/‌/g," ");
+
+s=
+normalizePersianNumbers(s);
+
+s=s
+.replace(/مترمربع/g,"متر مربع")
+.replace(/مترمربعی/g,"متر مربع")
+.replace(/متره\s*طول/g,"متر طول")
+.replace(/سانتی\s*متر/g,"سانتیمتر");
+
+const width=
+extractWidth(s);
+
+if(!width || width<=0)
+return null;
+
+const isArea=
+/متر\s*مربع|مربع/.test(s);
+
+const isLength=
+/متر\s*طول|طول/.test(s);
+
+let amount=null;
+
+if(isArea){
+
+amount=
+extractNumberBefore(
+s,
+/متر\s*مربع|مربع/
+);
+
+}else if(isLength){
+
+amount=
+extractNumberBefore(
+s,
+/متر\s*طول|طول/
+);
+
+}else{
+
+const areaMatch=
+s.match(
+/(\d+(?:[.]\d+)?)\s*متر/
+);
+
+if(areaMatch){
+
+amount=
+parseFloat(areaMatch[1]);
+
+}
+
+}
+
+if(
+amount===null||
+amount<=0
+){
+
+const unitIndex=
+isArea
+?
+s.search(/متر\s*مربع|مربع/)
+:
+s.search(/متر\s*طول|طول/);
+
+if(unitIndex>=0){
+
+const before=
+s.slice(
+Math.max(0,unitIndex-40),
+unitIndex
+);
+
+amount=
+parseNumberWords(
+before.trim()
+.split(/\s+/)
+.slice(-5)
+.join(" ")
+);
+
+}
+
+}
+
+if(
+amount===null||
+amount<=0
+){
+
+return null;
+
+}
+
+return{
+
+type:
+isArea
+?
+"areaToLength"
+:
+"lengthToArea",
+
+amount,
+width
+
+};
+
+}
+
+function applyVoiceCalculation(data){
+
+const typeEl=
+document.getElementById("calcType");
+
+const amountEl=
+document.getElementById("calcAmount");
+
+const widthEl=
+document.getElementById("calcWidth");
+
+if(
+!typeEl||
+!amountEl||
+!widthEl
+)
+return;
+
+typeEl.value=data.type;
+
+updateCalculatorFields();
+
+amountEl.value=data.amount;
+
+widthEl.value=data.width;
+
+calculateConversion();
+
+}
+
+function searchTextMatch(value,q){
+
+const a=norm(String(value||'')).toLowerCase();
+const b=norm(String(q||'')).toLowerCase();
+
+return !!b && a.includes(b);
+
+}
+
+function searchProductMatch(p,q){
+
+return [
+ p?.name,
+ p?.category,
+ p?.description,
+ p?.price,
+ p?.oldPrice
+].some(v=>searchTextMatch(v,q));
+
+}
+
+function showSearchResults(q){
+
+const query=norm(q);
+
+if(!query){
+showToast('عبارت جستجو را وارد کنید');
+return;
+}
+
+const matchedCategories=categories.filter(c=>
+searchTextMatch(c.name,query)
+);
+
+const matches=products.filter(p=>
+searchProductMatch(p,query)
+);
+
+const box=document.getElementById('categoryProducts');
+
+if(!box)return;
+
+document.getElementById('homePage')?.classList.add('hidden');
+document.getElementById('categoriesPage')?.classList.add('hidden');
+box.classList.remove('hidden');
+
+const categoryLinks=matchedCategories.length
+? `<div class="actions" style="justify-content:flex-start;margin-bottom:12px;gap:8px">${matchedCategories.map(c=>`<button type="button" class="btn light" onclick="showCategory('${encodeURIComponent(c.name)}')">📂 ${esc(c.name)}</button>`).join('')}</div>`
+: '';
+
+const sortedMatches=matches.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+
+box.innerHTML=`
+<div class="category-page-head">
+<h2 class="page-title">🔎 نتیجه جستجو</h2>
+<button class="page-back" onclick="openCategories()">← دسته‌بندی‌ها</button>
+</div>
+<div class="panel">
+<div class="notice" style="margin-bottom:12px">نتایج جستجو برای «${esc(query)}» — ${matchedCategories.length} دسته و ${sortedMatches.length} محصول پیدا شد.</div>
+${categoryLinks}
+<div class="products">
+${sortedMatches.length?sortedMatches.map(productCard).join(''):`<div class="notice">محصولی با این عبارت پیدا نشد؛ دسته‌های مرتبط در بالا نمایش داده شده‌اند.</div>`}
+</div>
+</div>`;
+
+window.scrollTo({top:0,behavior:'smooth'});
+
+}
+
+function searchHome(){
+
+const input=document.getElementById('search');
+const q=input?.value||'';
+
+showSearchResults(q);
+
+}
+
+function openPhoneManager(){
+
+if(!admin){
+openLogin();
+return;
+}
+
+const phone=localStorage.getItem(PHONE_KEY)||'09140824203';
+
+openModal(`
+<div class="modalhead">
+<h3>☎️ ویرایش شماره تماس مدیریت</h3>
+<button class="btn light" onclick="openAdminPanel()">← برگشت</button>
+</div>
+<div class="notice">این شماره در بخش «تماس با مدیریت» نمایش داده می‌شود و لینک تماس تلفنی نیز از همین شماره استفاده می‌کند.</div>
+<div class="form" style="margin-top:14px">
+<input id="managerPhone" type="tel" inputmode="tel" autocomplete="tel" value="${esc(phone)}" placeholder="مثلاً 09123456789">
+<button class="btn gold" onclick="savePhone()">💾 ذخیره شماره</button>
+</div>
+`);
+
+}
+
+function savePhone(){
+
+if(!admin){
+openLogin();
+return;
+}
+
+let value=document.getElementById('managerPhone')?.value.trim()||'';
+value=value.replace(/[\s-]/g,'');
+
+if(/^\+98\d{10}$/.test(value))value='0'+value.slice(3);
+else if(/^0098\d{10}$/.test(value))value='0'+value.slice(4);
+
+if(!/^09\d{9}$/.test(value)){
+showToast('شماره موبایل معتبر وارد کنید');
+return;
+}
+
+localStorage.setItem(PHONE_KEY,value);
+showToast('شماره تماس مدیریت با موفقیت ذخیره شد');
+openAdminPanel();
+
+}
+
+function openContact(){
+
+const phone=
+localStorage.getItem(PHONE_KEY)
+||
+"09140824203";
 
 openModal(`
 
 <div class="modalhead">
 
 <h3>
-📝 یادداشت جدید
+☎️ تماس با مدیریت
 </h3>
 
 <button
 class="btn light"
-onclick="openNotes()"
+onclick="closeModal()"
 >
-← برگشت
+بستن
 </button>
 
 </div>
 
-<div class="form">
+<div class="notice">
 
-<textarea
-id="noteText"
-placeholder="متن یادداشت..."
-></textarea>
+برای مشاوره، استعلام قیمت و هماهنگی اندازه‌گیری با مدیریت تماس بگیرید.
 
-<div class="actions">
+</div>
 
-<button
-class="btn"
-onclick="document.getElementById('noteCamera').click()"
+<div
+class="actions"
+style="margin-top:14px"
 >
-📷 عکس
-</button>
 
-<button
+<a
+class="btn"
+style="text-decoration:none"
+href="tel:${phone}"
+>
+☎️ ${phone}
+</a>
+
+<a
 class="btn light"
-onclick="document.getElementById('noteGallery').click()"
+style="text-decoration:none"
+href="https://t.me/Fantastic_4450"
+target="_blank"
 >
-🖼️ گالری
-</button>
-
-</div>
-
-<div
-id="noteImagePreview"
-class="media-preview"
-></div>
-
-<button
-class="btn"
-onclick="toggleVoiceRecording()"
->
-🎙️ ضبط صدا
-</button>
-
-<div
-id="voiceStatus"
-class="notice"
-style="display:none"
->
-در حال ضبط صدا...
-</div>
-
-<div
-id="audioPreview"
-class="media-box"
-style="display:none"
-></div>
-
-<button
-class="btn gold"
-onclick="saveNote()"
->
-💾 ذخیره یادداشت
-</button>
+✈️ تلگرام
+</a>
 
 </div>
 
@@ -4738,22 +3906,30 @@ onclick="saveNote()"
 
 }
 
+function formatDate(ts){
 
-/* ================= NOTE IMAGE ================= */
+try{
 
-function pickedNoteImage(input){
-
-if(!admin){
-
-input.value="";
-
-showToast(
-"ابتدا وارد مدیریت شوید"
+return new Date(ts).toLocaleString(
+"fa-IR",
+{
+year:"numeric",
+month:"2-digit",
+day:"2-digit",
+hour:"2-digit",
+minute:"2-digit"
+}
 );
 
-return;
+}catch{
+
+return "";
 
 }
+
+}
+
+async function pickedNoteImage(input){
 
 const f=
 input.files &&
@@ -4762,85 +3938,158 @@ input.files[0];
 if(!f)
 return;
 
-if(
-!f.type ||
-!f.type.startsWith("image/")
-){
+try{
 
-input.value="";
-
-showToast(
-"فایل انتخاب‌شده تصویر نیست"
+noteImageData=
+await compressImage(
+f,
+1200,
+0.68
 );
 
-return;
+renderNoteMediaPreview();
+
+}catch(e){
+
+showToast(
+"خواندن تصویر انجام نشد"
+);
 
 }
 
-compressImage(
-f,
-700,
-0.50
-)
-.then(data=>{
+input.value="";
 
-currentNoteImage=data;
+}
+
+function renderNoteMediaPreview(){
 
 const box=
 document.getElementById(
-"noteImagePreview"
+"noteMediaPreview"
 );
 
-if(box){
+if(!box)
+return;
 
-box.innerHTML=`
+let html="";
+
+if(noteImageData){
+
+html+=`
+
+<div class="media-box">
+
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:8px;
+font-size:13px;
+font-weight:700;
+color:var(--green);
+">
+
+<span>📷 تصویر انتخاب‌شده</span>
+
+<button
+class="note-delete"
+onclick="removeNoteImage()"
+>
+❌ حذف
+</button>
+
+</div>
 
 <img
-src="${esc(data)}"
+src="${esc(noteImageData)}"
 style="
-width:160px;
-height:120px;
+width:130px;
+height:100px;
 object-fit:cover;
 border-radius:10px;
-border:1px solid #ddd
 "
 >
+
+</div>
 
 `;
 
 }
 
-showToast(
-"عکس یادداشت آماده شد"
-);
+if(noteVoiceUrl){
 
-})
-.catch(()=>{
+html+=`
 
-showToast(
-"خواندن عکس انجام نشد"
-);
+<div class="media-box">
 
-});
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:8px;
+font-size:13px;
+font-weight:700;
+color:var(--green);
+">
 
-input.value="";
+<span>🎙️ صدای ضبط‌شده</span>
+
+<button
+class="note-delete"
+onclick="removeNoteVoice()"
+>
+❌ حذف
+</button>
+
+</div>
+
+<audio
+class="note-audio"
+controls
+src="${esc(noteVoiceUrl)}"
+></audio>
+
+</div>
+
+`;
 
 }
 
-
-/* ================= VOICE ================= */
-
-async function toggleVoiceRecording(){
-
-if(!admin){
-
-openLogin();
-
-return;
+box.innerHTML=html;
 
 }
 
-if(isRecording){
+function removeNoteImage(){
+
+noteImageData="";
+
+renderNoteMediaPreview();
+
+}
+
+function removeNoteVoice(){
+
+if(noteVoiceUrl){
+
+URL.revokeObjectURL(
+noteVoiceUrl
+);
+
+}
+
+noteVoiceUrl="";
+
+noteVoiceBlob=null;
+
+voiceChunks=[];
+
+renderNoteMediaPreview();
+
+}
+
+async function startVoiceRecording(){
+
+if(voiceRecording){
 
 stopVoiceRecording(true);
 
@@ -4849,12 +4098,13 @@ return;
 }
 
 if(
-!navigator.mediaDevices ||
-!navigator.mediaDevices.getUserMedia
+!navigator.mediaDevices||
+!navigator.mediaDevices.getUserMedia||
+!window.MediaRecorder
 ){
 
 showToast(
-"ضبط صدا در این مرورگر در دسترس نیست"
+"مرورگر شما امکان ضبط صدا را ندارد"
 );
 
 return;
@@ -4870,207 +4120,773 @@ audio:true
 
 voiceChunks=[];
 
-voiceRecorder=
+let mime="";
+
+const candidates=[
+"audio/webm;codecs=opus",
+"audio/webm",
+"audio/ogg;codecs=opus"
+];
+
+for(const type of candidates){
+
+if(
+MediaRecorder.isTypeSupported &&
+MediaRecorder.isTypeSupported(type)
+){
+
+mime=type;
+break;
+
+}
+
+}
+
+mediaRecorder=
+mime
+?
+new MediaRecorder(
+stream,
+{mimeType:mime}
+)
+:
 new MediaRecorder(stream);
 
-voiceRecorder.ondataavailable=e=>{
+mediaRecorder.ondataavailable=
+event=>{
 
-if(e.data.size>0)
-voiceChunks.push(e.data);
+if(
+event.data &&
+event.data.size>0
+){
+
+voiceChunks.push(event.data);
+
+}
 
 };
 
-voiceRecorder.onstop=()=>{
+mediaRecorder.onstop=()=>{
 
-const blob=
+stream.getTracks().forEach(
+track=>track.stop()
+);
+
+const type=
+mediaRecorder.mimeType||
+"audio/webm";
+
+noteVoiceBlob=
 new Blob(
 voiceChunks,
+{type}
+);
+
+if(noteVoiceUrl){
+
+URL.revokeObjectURL(
+noteVoiceUrl
+);
+
+}
+
+noteVoiceUrl=
+URL.createObjectURL(
+noteVoiceBlob
+););
+
+voiceRecording=false;
+
+clearInterval(voiceTimer);
+
+renderNoteMediaPreview();
+
+updateVoiceButton();
+
+};
+
+mediaRecorder.start();
+
+voiceRecording=true;
+
+voiceSeconds=0;
+
+updateVoiceButton();
+
+voiceTimer=
+setInterval(()=>{
+
+voiceSeconds++;
+
+updateVoiceButton();
+
+if(voiceSeconds>=30){
+
+stopVoiceRecording(true);
+
+showToast(
+"حداکثر زمان ضبط ۳۰ ثانیه است"
+);
+
+}
+
+},1000);
+
+}catch(e){
+
+showToast(
+"دسترسی به میکروفون داده نشد"
+);
+
+}
+
+}
+
+function stopVoiceRecording(save=true){
+
+if(
+mediaRecorder &&
+mediaRecorder.state!=="inactive"
+){
+
+mediaRecorder.stop();
+
+}
+
+clearInterval(voiceTimer);
+
+voiceTimer=null;
+
+if(!save){
+
+voiceRecording=false;
+
+}
+
+}
+
+function updateVoiceButton(){
+
+const btn=
+document.getElementById(
+"voiceRecordButton"
+);
+
+const status=
+document.getElementById(
+"voiceStatus"
+);
+
+if(!btn)
+return;
+
+if(voiceRecording){
+
+btn.textContent=
+"⏹️ توقف ضبط";
+
+btn.classList.add("red");
+
+if(status){
+
+status.textContent=
+"در حال ضبط: "+
+voiceSeconds+
+" ثانیه از ۳۰ ثانیه";
+
+}
+
+}else{
+
+btn.textContent=
+"🎙️ ضبط صدا";
+
+btn.classList.remove("red");
+
+if(status){
+
+status.textContent=
+noteVoiceBlob
+?
+"صدا آماده ارسال است"
+:
+"حداکثر زمان ضبط: ۳۰ ثانیه";
+
+}
+
+}
+
+}
+
+/* ================= FETCH NOTES =================== */
+
+async function fetchNotes(silent=false){
+
+try{
+
+const r=
+await fetch(
+"/api/notes",
 {
-type:
-voiceRecorder.mimeType ||
-"audio/webm"
+cache:"no-store"
 }
 );
+
+if(!r.ok)
+throw new Error();
+
+const d=
+await r.json();
+
+const incoming=
+Array.isArray(d.notes)
+?
+d.notes
+:
+[];
+
+const oldIds=
+new Set(
+notes.map(
+n=>n.id
+)
+);
+
+const fresh=
+incoming.filter(
+n=>!oldIds.has(n.id)
+);
+
+notes=
+incoming.sort(
+(a,b)=>
+(b.createdAt||0)-
+(a.createdAt||0)
+);
+
+if(
+notesLoaded &&
+fresh.length &&
+!silent
+){
+
+notifyNewNote(fresh[fresh.length-1]);
+
+}
+
+notesLoaded=true;
+
+if(
+document.getElementById("notesList")
+){
+
+renderNotes();
+
+}
+
+}catch(e){
+
+/* خطای موقت سرویس یادداشت بدون نمایش هشدار */
+
+}
+
+}
+
+function renderNotes(){
+
+const list=
+notes.length
+?
+notes.map(n=>`
+
+<div class="note-item">
+
+${
+n.text
+?
+`
+<div class="note-text">
+${esc(n.text)}
+</div>
+`
+:
+""
+}
+
+${
+n.image?.url
+||
+n.voice?.url
+?
+`
+<div class="note-media">
+
+${
+n.image?.url
+?
+`
+<img
+class="note-photo"
+src="${esc(n.image.url)}"
+onclick="zoomNoteImage('${encodeURIComponent(n.image.url)}')"
+>
+`
+:
+""
+}
+
+${
+n.voice?.url
+?
+`
+<audio
+class="note-audio"
+controls
+preload="metadata"
+src="${esc(n.voice.url)}"
+></audio>
+`
+:
+""
+}
+
+</div>
+`
+:
+""
+}
+
+<div class="note-meta">
+
+<span>
+🕒 ${formatDate(n.createdAt)}
+</span>
+
+${
+admin
+?
+`
+<button
+class="note-delete"
+onclick="deleteNote('${encodeURIComponent(n.id)}')"
+>
+حذف
+</button>
+`
+:
+""
+}
+
+</div>
+
+</div>
+
+`).join("")
+:
+`
+<div class="notice">
+هنوز یادداشتی ثبت نشده است.
+</div>
+`;
+
+const el=
+document.getElementById("notesList");
+
+if(el)
+el.innerHTML=list;
+
+}
+
+function zoomNoteImage(enc){
+
+const src=
+decodeURIComponent(enc);
+
+openModal(`
+
+<div class="modalhead">
+
+<h3>
+📷 تصویر یادداشت
+</h3>
+
+<button
+class="btn light"
+onclick="closeModal()"
+>
+بستن
+</button>
+
+</div>
+
+<img
+src="${esc(src)}"
+style="
+width:100%;
+max-height:75vh;
+object-fit:contain;
+border-radius:15px;
+"
+onclick="closeModal()"
+>
+
+`);
+
+}
+
+async function openNotes(){
+
+await fetchNotes(true);
+
+noteImageData="";
+noteVoiceBlob=null;
+
+if(noteVoiceUrl){
+
+URL.revokeObjectURL(noteVoiceUrl);
+
+}
+
+noteVoiceUrl="";
+
+openModal(`
+
+<div class="modalhead">
+
+<h3>
+📝 یادداشت
+</h3>
+
+<button
+class="btn light"
+onclick="closeModal()"
+>
+بستن
+</button>
+
+</div>
+
+<div class="notice">
+پیامتو بزار همه ببینن. همه کاربران حاضر در سایت می‌توانند متن، عکس و صدای خودشان را ثبت کنند و یادداشت‌های جدید را ببینند.
+</div>
+
+<div class="actions" style="justify-content:flex-start;margin:12px 0;gap:8px">
+<button class="btn light" onclick="enableNoteNotifications()">🔔 فعال‌سازی اعلان</button>
+<button class="btn light" id="noteSoundToggle" onclick="toggleNoteSound()">🔊 صدای اعلان: روشن</button>
+</div>
+
+<div
+class="form"
+style="margin-top:13px"
+>
+
+<textarea
+id="noteText"
+maxlength="500"
+placeholder="پیامتو اینجا بنویس..."
+></textarea>
+
+<div
+class="actions"
+style="justify-content:flex-start"
+>
+
+<button
+class="btn"
+onclick="document.getElementById('noteCamera').click()"
+>
+📷 دوربین
+</button>
+
+<button
+class="btn light"
+onclick="document.getElementById('noteGallery').click()"
+>
+🖼️ گالری
+</button>
+
+<button
+id="voiceRecordButton"
+class="btn"
+onclick="startVoiceRecording()"
+>
+🎙️ ضبط صدا
+</button>
+
+</div>
+
+<div
+id="voiceStatus"
+style="
+font-size:12px;
+color:#777;
+text-align:center;
+"
+>
+حداکثر زمان ضبط: ۳۰ ثانیه
+</div>
+
+<div
+id="noteMediaPreview"
+class="media-preview"
+></div>
+
+<button
+class="btn gold"
+onclick="addNote()"
+>
+📤 ثبت یادداشت
+</button>
+
+</div>
+
+<div style="margin-top:18px">
+
+<h3 style="color:var(--green)">
+همه یادداشت‌ها
+</h3>
+
+<div id="notesList"></div>
+
+</div>
+
+`);
+
+renderNotes();
+updateNoteSoundButton();
+
+}
+
+function blobToBase64(blob){
+
+return new Promise((resolve,reject)=>{
 
 const reader=
 new FileReader();
 
 reader.onload=()=>{
 
-currentNoteAudio=
-reader.result;
+const result=
+String(reader.result||"");
 
-const box=
-document.getElementById(
-"audioPreview"
+const comma=
+result.indexOf(",");
+
+resolve(
+comma>=0
+?
+result.slice(comma+1)
+:
+result
 );
 
-if(box){
-
-box.style.display="block";
-
-box.innerHTML=`
-
-<audio
-controls
-style="width:100%"
-src="${esc(currentNoteAudio)}"
->
-</audio>
-
-`;
-
-}
-
 };
+
+reader.onerror=reject;
 
 reader.readAsDataURL(blob);
 
-stream
-.getTracks()
-.forEach(
-track=>track.stop()
-);
-
-};
-
-voiceRecorder.start();
-
-isRecording=true;
-
-const status=
-document.getElementById(
-"voiceStatus"
-);
-
-if(status){
-
-status.style.display="block";
-
-status.textContent=
-"🔴 در حال ضبط صدا... برای توقف دوباره روی دکمه ضبط صدا بزنید.";
+});
 
 }
 
-}catch(e){
-
-console.error(e);
-
-showToast(
-"اجازه دسترسی به میکروفون داده نشد"
-);
-
-}
-
-}
-
-
-/* ================= STOP VOICE ================= */
-
-function stopVoiceRecording(
-saveAudio=true
-){
-
-if(
-voiceRecorder &&
-isRecording
-){
-
-try{
-
-voiceRecorder.stop();
-
-}catch(e){}
-
-isRecording=false;
-
-const status=
-document.getElementById(
-"voiceStatus"
-);
-
-if(status)
-status.style.display="none";
-
-}
-
-}
-
-
-/* ================= SAVE NOTE ================= */
-
-function saveNote(){
-
-if(!admin){
-
-openLogin();
-
-return;
-
-}
+async function addNote(){
 
 const text=
 document
 .getElementById("noteText")
-.value
+?.value
 .trim();
 
 if(
 !text &&
-!currentNoteImage &&
-!currentNoteAudio
+!noteImageData &&
+!noteVoiceBlob
 ){
 
 showToast(
-"متن، عکس یا صدا وارد کنید"
+"متن، عکس یا صدا را اضافه کنید"
 );
 
 return;
 
 }
 
-const notes=
-getNotes();
-
-notes.push({
-
-id:
-Date.now().toString(),
-
-text:text,
-
-image:
-currentNoteImage,
-
-audio:
-currentNoteAudio,
-
-date:
-new Date()
-.toLocaleString(
-"fa-IR"
-)
-
-});
-
-saveNotes(notes);
-
-currentNoteImage="";
-
-currentNoteAudio="";
-
-openNotes();
+if(voiceRecording){
 
 showToast(
-"یادداشت ذخیره شد"
+"ابتدا ضبط صدا را متوقف کنید"
+);
+
+return;
+
+}
+
+const button=
+document.querySelector(
+'button[onclick="addNote()"]'
+);
+
+if(button){
+
+button.disabled=true;
+
+button.textContent=
+"⏳ در حال ارسال...";
+
+}
+
+try{
+
+const body={
+text
+};
+
+if(noteImageData){
+
+body.image={
+data:
+await blobToBase64(
+dataUrlToBlob(noteImageData)
+)
+};
+
+}
+
+if(noteVoiceBlob){
+
+body.voice={
+data:
+await blobToBase64(
+noteVoiceBlob
+)
+};
+
+}
+
+const r=
+await fetch(
+"/api/notes",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify(body)
+}
+);
+
+const d=
+await r.json().catch(
+()=>({})
+);
+
+if(!r.ok){
+
+throw new Error(
+d.error||
+"خطا در ثبت یادداشت"
 );
 
 }
 
+noteImageData="";
 
-/* ================= DELETE NOTE ================= */
+noteVoiceBlob=null;
 
-function deleteNote(id){
+if(noteVoiceUrl){
+
+URL.revokeObjectURL(
+noteVoiceUrl
+);
+
+}
+
+noteVoiceUrl="";
+
+await fetchNotes(true);
+
+renderNotes();
+
+document
+.getElementById("noteText")
+.value="";
+
+renderNoteMediaPreview();
+
+showToast(
+"یادداشت ثبت شد"
+);
+
+}catch(e){
+
+showToast(
+e.message||
+"ثبت یادداشت انجام نشد"
+);
+
+}finally{
+
+if(button){
+
+button.disabled=false;
+
+button.textContent=
+"📤 ثبت یادداشت";
+
+}
+
+}
+
+}
+
+function dataUrlToBlob(dataUrl){
+
+const parts=
+String(dataUrl).split(",");
+
+const meta=
+parts[0]||"";
+
+const data=
+parts[1]||"";
+
+const mime=
+(
+meta.match(
+/data:([^;]+)/
+)||[]
+)[1]
+||
+"image/jpeg";
+
+const binary=
+atob(data);
+
+const bytes=
+new Uint8Array(
+binary.length
+);
+
+for(
+let i=0;
+i<binary.length;
+i++
+){
+
+bytes[i]=
+binary.charCodeAt(i);
+
+}
+
+return new Blob(
+[bytes],
+{type:mime}
+);
+
+}
+
+async function deleteNote(id){
 
 if(!admin){
 
@@ -5080,48 +4896,251 @@ return;
 
 }
 
+const real=
+decodeURIComponent(id);
+
 if(
-!confirm(
-"این یادداشت حذف شود؟"
-)
+!confirm("این یادداشت حذف شود؟")
 )
 return;
 
-const notes=
-getNotes()
-.filter(
-n=>n.id!==id
+try{
+
+const r=
+await fetch(
+"/api/notes/"+
+encodeURIComponent(real),
+{
+method:"DELETE",
+headers:{
+"Authorization":
+"Bearer "+ADMIN_PASSWORD
+}
+}
 );
 
-saveNotes(notes);
+const d=
+await r.json().catch(
+()=>({})
+);
 
-openNotes();
+if(!r.ok){
 
-showToast(
-"یادداشت حذف شد"
+throw new Error(
+d.error||
+"خطا"
 );
 
 }
 
+await fetchNotes(true);
 
-/* ================= INIT ================= */
+renderNotes();
 
-document.addEventListener(
-"DOMContentLoaded",
-()=>{
-
-try{
-
-renderCategoriesPage();
+showToast(
+"یادداشت و فایل‌های آن حذف شد"
+);
 
 }catch(e){
 
-console.error(e);
-
-}
-
-}
+showToast(
+"حذف یادداشت انجام نشد"
 );
+
+}
+
+}
+
+function noteSoundEnabled(){
+return localStorage.getItem('verona_note_sound')!=='off';
+}
+
+function updateNoteSoundButton(){
+const b=document.getElementById('noteSoundToggle');
+if(b)b.textContent=noteSoundEnabled()?'🔊 صدای اعلان: روشن':'🔇 صدای اعلان: خاموش';
+}
+
+function toggleNoteSound(){
+localStorage.setItem('verona_note_sound',noteSoundEnabled()?'off':'on');
+updateNoteSoundButton();
+showToast(noteSoundEnabled()?'صدای اعلان روشن شد':'صدای اعلان خاموش شد');
+}
+
+const VERONA_VAPID_PUBLIC_KEY =
+"BNdDq6ByHa_59pD0D99zJIf9bZcbAnGbr8Kr37d2XrxbcByw3HSwfE1xFo1FFQ0wZ1HH07mXlgXowddrkNVQOxo";
+
+let veronaPushRegistration = null;
+
+function urlBase64ToUint8Array(base64String){
+const padding = "=".repeat((4 - base64String.length % 4) % 4);
+const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+const rawData = atob(base64);
+return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
+}
+
+async function registerVeronaServiceWorker(){
+if(!("serviceWorker" in navigator)) throw new Error("Service Worker پشتیبانی نمی‌شود");
+veronaPushRegistration = await navigator.serviceWorker.register("/sw.js",{scope:"/"});
+await navigator.serviceWorker.ready;
+return veronaPushRegistration;
+}
+
+async function getVeronaPushSubscription(){
+const registration = veronaPushRegistration || await registerVeronaServiceWorker();
+let subscription = await registration.pushManager.getSubscription();
+if(!subscription){
+subscription = await registration.pushManager.subscribe({
+userVisibleOnly:true,
+applicationServerKey:urlBase64ToUint8Array(VERONA_VAPID_PUBLIC_KEY)
+});
+}
+return subscription;
+}
+
+async function saveVeronaPushSubscription(subscription){
+const response = await fetch("/api/push/subscribe",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(subscription.toJSON())
+});
+if(!response.ok){
+let message="ثبت اعلان انجام نشد";
+try{
+const data=await response.json();
+if(data?.error) message=data.error;
+}catch(e){}
+throw new Error(message);
+}
+return response.json().catch(()=>({success:true}));
+}
+
+async function enableNoteNotifications(){
+try{
+if(!("Notification" in window)){
+showToast("اعلان مرورگر در این دستگاه پشتیبانی نمی‌شود");
+return;
+}
+const permission = Notification.permission==="granted"
+? "granted"
+: await Notification.requestPermission();
+
+if(permission!=="granted"){
+showToast("اجازه اعلان داده نشد");
+return;
+}
+
+const subscription = await getVeronaPushSubscription();
+await saveVeronaPushSubscription(subscription);
+showToast("🔔 اعلان واقعی سایت با موفقیت فعال شد");
+}catch(e){
+console.error("Verona Push:",e);
+showToast("فعال‌سازی اعلان انجام نشد: "+(e?.message||"خطای نامشخص"));
+}
+}
+
+async function initVeronaPush(){
+try{
+if(!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+await registerVeronaServiceWorker();
+if("Notification" in window && Notification.permission==="granted"){
+const subscription = await getVeronaPushSubscription();
+await saveVeronaPushSubscription(subscription);
+}
+}catch(e){
+console.warn("Push initialization:",e);
+}
+}
+
+function showNoteAlert(){
+const x=document.getElementById('noteAlert');
+if(!x)return;
+x.style.display='block';
+setTimeout(()=>{x.style.display='none';},3500);
+}
+
+function notifyNewNote(note){
+
+showNoteAlert();
+
+if(navigator.vibrate){
+try{navigator.vibrate([300,150,300,150,500]);}catch(e){}
+}
+
+if('Notification' in window && Notification.permission==='granted'){
+try{
+const text=note?.text?String(note.text).slice(0,100):'یک اعلان جدید ثبت شد';
+new Notification('📝 یادداشت جدید فروشگاه ورونا',{body:text});
+}catch(e){}
+}
+
+if(noteSoundEnabled())playNotification();
+
+}
+
+function playNotification(){
+
+try{
+const AudioContext=window.AudioContext||window.webkitAudioContext;
+if(!AudioContext)return;
+
+const audio=new AudioContext();
+const start=()=>{
+const now=audio.currentTime;
+function beep(frequency,startAt,duration){
+const oscillator=audio.createOscillator();
+const gain=audio.createGain();
+oscillator.type='sine';
+oscillator.frequency.setValueAtTime(frequency,now+startAt);
+gain.gain.setValueAtTime(0.0001,now+startAt);
+gain.gain.exponentialRampToValueAtTime(0.55,now+startAt+0.03);
+gain.gain.exponentialRampToValueAtTime(0.0001,now+startAt+duration);
+oscillator.connect(gain);
+gain.connect(audio.destination);
+oscillator.start(now+startAt);
+oscillator.stop(now+startAt+duration+0.05);
+}
+beep(880,0,0.35);
+beep(1175,0.24,0.35);
+beep(880,0.48,0.45);
+setTimeout(()=>{try{audio.close();}catch(e){}},1300);
+};
+
+if(audio.state==='suspended'){
+audio.resume().then(start).catch(()=>{});
+}else{
+start();
+}
+}catch(e){}
+}
+
+updateNoteSoundButton();
+
+
+window.addEventListener(
+"beforeunload",
+()=>{
+
+if(noteVoiceUrl){
+
+URL.revokeObjectURL(
+noteVoiceUrl
+);
+
+}
+
+});
+
+setInterval(
+()=>{
+
+fetchNotes(false);
+
+},
+8000
+);
+
+fetchNotes(true);
+initVeronaPush();
 
 </script>
 
