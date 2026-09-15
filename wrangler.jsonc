@@ -14,12 +14,5 @@
       "binding": "VERONA_NOTES",
       "id": "21053712519a4e2fbccac12e1d972144"
     }
-  ],
-
-  "r2_buckets": [
-    {
-      "binding": "VERONA_MEDIA",
-      "bucket_name": "verona-media"
-    }
   ]
 }
