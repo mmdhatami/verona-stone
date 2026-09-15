@@ -1,4 +1,5 @@
 const NOTES_KEY = "verona:notes";
+const POSTFILE_UPLOAD_URL = "https://postfile.net/v1/upload/base64";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -14,9 +15,16 @@ function json(data, status = 200) {
 
 function cors(response) {
   const headers = new Headers(response.headers);
+
   headers.set("Access-Control-Allow-Origin", "*");
-  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+  headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+  headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, DELETE, OPTIONS"
+  );
 
   return new Response(response.body, {
     status: response.status,
@@ -31,8 +39,12 @@ async function getNotes(env) {
   }
 
   try {
-    const data = await env.VERONA_NOTES.get(NOTES_KEY, "json");
-    return Array.isArray(data) ? data : [];
+    const notes = await env.VERONA_NOTES.get(
+      NOTES_KEY,
+      "json"
+    );
+
+    return Array.isArray(notes) ? notes : [];
   } catch (error) {
     console.error("getNotes error:", error);
     return [];
@@ -50,12 +62,219 @@ async function saveNotes(env, notes) {
   );
 }
 
+function normalizeBase64(value) {
+  if (!value || typeof value !== "string") {
+    return "";
+  }
+
+  /*
+   * اگر فرانت‌اند به‌جای Base64 خام،
+   * data:image/...;base64,... فرستاد،
+   * قسمت ابتدایی را حذف می‌کنیم.
+   */
+  if (value.includes(",")) {
+    const commaIndex = value.indexOf(",");
+
+    if (
+      value
+        .slice(0, commaIndex)
+        .toLowerCase()
+        .includes("base64")
+    ) {
+      return value.slice(commaIndex + 1);
+    }
+  }
+
+  return value;
+}
+
+function detectImageType(image) {
+  if (
+    image &&
+    typeof image.type === "string" &&
+    image.type.trim()
+  ) {
+    return image.type.trim();
+  }
+
+  if (
+    image &&
+    typeof image.content_type === "string" &&
+    image.content_type.trim()
+  ) {
+    return image.content_type.trim();
+  }
+
+  return "image/jpeg";
+}
+
+function detectVoiceType(voice) {
+  if (
+    voice &&
+    typeof voice.type === "string" &&
+    voice.type.trim()
+  ) {
+    return voice.type.trim();
+  }
+
+  if (
+    voice &&
+    typeof voice.content_type === "string" &&
+    voice.content_type.trim()
+  ) {
+    return voice.content_type.trim();
+  }
+
+  return "audio/webm";
+}
+
+function extensionFromType(type, fallback) {
+  const clean = String(type || "").toLowerCase();
+
+  if (clean.includes("jpeg")) return "jpg";
+  if (clean.includes("jpg")) return "jpg";
+  if (clean.includes("png")) return "png";
+  if (clean.includes("webp")) return "webp";
+  if (clean.includes("gif")) return "gif";
+  if (clean.includes("heic")) return "heic";
+  if (clean.includes("heif")) return "heif";
+
+  if (clean.includes("webm")) return "webm";
+  if (clean.includes("mpeg")) return "mp3";
+  if (clean.includes("mp3")) return "mp3";
+  if (clean.includes("wav")) return "wav";
+  if (clean.includes("ogg")) return "ogg";
+  if (clean.includes("mp4")) return "mp4";
+
+  return fallback;
+}
+
+async function uploadToPostFile(
+  env,
+  base64,
+  filename,
+  contentType
+) {
+  if (!env.POSTFILE_API_KEY) {
+    throw new Error(
+      "POSTFILE_API_KEY is not configured"
+    );
+  }
+
+  const cleanBase64 = normalizeBase64(base64);
+
+  if (!cleanBase64) {
+    throw new Error("File data is empty");
+  }
+
+  const response = await fetch(
+    POSTFILE_UPLOAD_URL,
+    {
+      method: "POST",
+
+      headers: {
+        "X-API-Key": env.POSTFILE_API_KEY,
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+        filename,
+        content_type: contentType,
+        data_base64: cleanBase64
+      })
+    }
+  );
+
+  const text = await response.text();
+
+  let data;
+
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = {
+      error: text
+    };
+  }
+
+  if (!response.ok) {
+    console.error(
+      "PostFile upload failed:",
+      response.status,
+      data
+    );
+
+    throw new Error(
+      data?.error ||
+      data?.message ||
+      `PostFile upload failed (${response.status})`
+    );
+  }
+
+  if (!data.url) {
+    throw new Error(
+      "PostFile did not return a file URL"
+    );
+  }
+
+  return {
+    file_id: data.file_id || null,
+    url: data.url,
+    name: data.name || filename,
+    size: data.size || null,
+    content_type:
+      data.content_type || contentType
+  };
+}
+
+async function deleteFromPostFile(env, fileId) {
+  if (!fileId || !env.POSTFILE_API_KEY) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `https://postfile.net/v1/files/${encodeURIComponent(
+        fileId
+      )}`,
+      {
+        method: "DELETE",
+        headers: {
+          "X-API-Key": env.POSTFILE_API_KEY
+        }
+      }
+    );
+
+    if (!response.ok) {
+      console.error(
+        "PostFile delete failed:",
+        response.status,
+        await response.text()
+      );
+    }
+  } catch (error) {
+    console.error(
+      "PostFile delete error:",
+      error
+    );
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    /*
+     * =========================
+     * OPTIONS / CORS
+     * =========================
+     */
     if (request.method === "OPTIONS") {
-      return cors(new Response(null, { status: 204 }));
+      return cors(
+        new Response(null, {
+          status: 204
+        })
+      );
     }
 
     /*
@@ -67,23 +286,41 @@ export default {
       url.pathname === "/api/notes" &&
       request.method === "GET"
     ) {
-      const notes = await getNotes(env);
+      try {
+        const notes = await getNotes(env);
 
-      return json({
-        ok: true,
-        notes
-      });
+        return json({
+          ok: true,
+          notes
+        });
+      } catch (error) {
+        console.error(
+          "GET /api/notes error:",
+          error
+        );
+
+        return json(
+          {
+            ok: false,
+            error: "دریافت یادداشت‌ها انجام نشد."
+          },
+          500
+        );
+      }
     }
 
     /*
      * =========================
-     * ADD NOTE
+     * CREATE NOTE
      * =========================
      */
     if (
       url.pathname === "/api/notes" &&
       request.method === "POST"
     ) {
+      let uploadedImage = null;
+      let uploadedVoice = null;
+
       try {
         const body = await request.json();
 
@@ -92,81 +329,216 @@ export default {
             ? body.text.trim()
             : "";
 
-        const hasImage =
+        const image =
           body.image &&
-          typeof body.image.data === "string" &&
-          body.image.data.length > 0;
+          typeof body.image === "object"
+            ? body.image
+            : null;
+
+        const voice =
+          body.voice &&
+          typeof body.voice === "object"
+            ? body.voice
+            : null;
+
+        const imageBase64 =
+          image &&
+          typeof image.data === "string"
+            ? image.data
+            : "";
+
+        const voiceBase64 =
+          voice &&
+          typeof voice.data === "string"
+            ? voice.data
+            : "";
+
+        const hasImage =
+          imageBase64.length > 0;
 
         const hasVoice =
-          body.voice &&
-          typeof body.voice.data === "string" &&
-          body.voice.data.length > 0;
+          voiceBase64.length > 0;
 
         /*
-         * فعلاً چون R2/Supabase نداریم،
-         * فایل‌های عکس و صدا ذخیره نمی‌شوند.
-         *
-         * به جای خراب شدن کل درخواست،
-         * پیام واضح به کاربر برمی‌گردانیم.
+         * یادداشت باید حداقل یکی از این‌ها را داشته باشد:
+         * متن / عکس / ویس
          */
-        if (hasImage || hasVoice) {
+        if (
+          !text &&
+          !hasImage &&
+          !hasVoice
+        ) {
           return json(
             {
               ok: false,
               error:
-                "ذخیره عکس و ویس فعلاً فعال نیست. ابتدا فضای ذخیره‌سازی فایل را متصل می‌کنیم."
-            },
-            503
-          );
-        }
-
-        if (!text) {
-          return json(
-            {
-              ok: false,
-              error: "متن یادداشت خالی است."
+                "یادداشت خالی است."
             },
             400
           );
         }
 
-        const notes = await getNotes(env);
+        /*
+         * =========================
+         * IMAGE UPLOAD
+         * =========================
+         */
+        if (hasImage) {
+          const imageType =
+            detectImageType(image);
+
+          const imageExt =
+            extensionFromType(
+              imageType,
+              "jpg"
+            );
+
+          uploadedImage =
+            await uploadToPostFile(
+              env,
+              imageBase64,
+              `verona-note-image-${Date.now()}.${imageExt}`,
+              imageType
+            );
+        }
+
+        /*
+         * =========================
+         * VOICE UPLOAD
+         * =========================
+         */
+        if (hasVoice) {
+          const voiceType =
+            detectVoiceType(voice);
+
+          const voiceExt =
+            extensionFromType(
+              voiceType,
+              "webm"
+            );
+
+          uploadedVoice =
+            await uploadToPostFile(
+              env,
+              voiceBase64,
+              `verona-note-voice-${Date.now()}.${voiceExt}`,
+              voiceType
+            );
+        }
+
+        /*
+         * =========================
+         * SAVE NOTE IN KV
+         * =========================
+         */
+        const notes =
+          await getNotes(env);
 
         const note = {
           id:
             Date.now().toString(36) +
-            Math.random().toString(36).slice(2, 8),
+            Math.random()
+              .toString(36)
+              .slice(2, 10),
 
           text,
 
-          createdAt: new Date().toISOString(),
+          createdAt:
+            new Date().toISOString(),
 
-          image: null,
+          image: uploadedImage
+            ? {
+                url: uploadedImage.url,
+                file_id:
+                  uploadedImage.file_id,
+                name:
+                  uploadedImage.name,
+                size:
+                  uploadedImage.size,
+                content_type:
+                  uploadedImage.content_type
+              }
+            : null,
 
-          voice: null
+          voice: uploadedVoice
+            ? {
+                url: uploadedVoice.url,
+                file_id:
+                  uploadedVoice.file_id,
+                name:
+                  uploadedVoice.name,
+                size:
+                  uploadedVoice.size,
+                content_type:
+                  uploadedVoice.content_type
+              }
+            : null
         };
 
         notes.unshift(note);
 
         /*
-         * حداکثر 500 یادداشت نگه می‌داریم
-         * تا KV بی‌دلیل پر نشود.
+         * حداکثر 500 یادداشت آخر
          */
-        const limitedNotes = notes.slice(0, 500);
+        const limitedNotes =
+          notes.slice(0, 500);
 
-        await saveNotes(env, limitedNotes);
+        await saveNotes(
+          env,
+          limitedNotes
+        );
 
         return json({
           ok: true,
           note
         });
       } catch (error) {
-        console.error("POST /api/notes error:", error);
+        console.error(
+          "POST /api/notes error:",
+          error
+        );
 
+        /*
+         * اگر فایل آپلود شد ولی ذخیره
+         * یادداشت در KV شکست خورد،
+         * فایل اضافی را هم حذف می‌کنیم.
+         */
+        if (
+          uploadedImage &&
+          uploadedImage.file_id
+        ) {
+          ctx.waitUntil(
+            deleteFromPostFile(
+              env,
+              uploadedImage.file_id
+            )
+          );
+        }
+
+        if (
+          uploadedVoice &&
+          uploadedVoice.file_id
+        ) {
+          ctx.waitUntil(
+            deleteFromPostFile(
+              env,
+              uploadedVoice.file_id
+            )
+          );
+        }
+
+        const message =
+          error?.message ||
+          "ثبت یادداشت انجام نشد.";
+
+        /*
+         * خطاهای مربوط به API فایل
+         * را واضح به فرانت‌اند می‌دهیم.
+         */
         return json(
           {
             ok: false,
-            error: "ثبت یادداشت انجام نشد."
+            error: message
           },
           500
         );
@@ -175,108 +547,3 @@ export default {
 
     /*
      * =========================
-     * DELETE NOTE
-     * =========================
-     */
-    if (
-      url.pathname.startsWith("/api/notes/") &&
-      request.method === "DELETE"
-    ) {
-      try {
-        const auth =
-          request.headers.get("Authorization") || "";
-
-        if (auth !== "Bearer 4450") {
-          return json(
-            {
-              ok: false,
-              error: "دسترسی غیرمجاز"
-            },
-            401
-          );
-        }
-
-        const id = decodeURIComponent(
-          url.pathname.substring("/api/notes/".length)
-        );
-
-        if (!id) {
-          return json(
-            {
-              ok: false,
-              error: "شناسه یادداشت مشخص نیست."
-            },
-            400
-          );
-        }
-
-        const notes = await getNotes(env);
-
-        const newNotes = notes.filter(
-          note => String(note.id) !== String(id)
-        );
-
-        if (newNotes.length === notes.length) {
-          return json(
-            {
-              ok: false,
-              error: "یادداشت پیدا نشد."
-            },
-            404
-          );
-        }
-
-        await saveNotes(env, newNotes);
-
-        return json({
-          ok: true,
-          message: "یادداشت حذف شد."
-        });
-      } catch (error) {
-        console.error("DELETE /api/notes error:", error);
-
-        return json(
-          {
-            ok: false,
-            error: "حذف یادداشت انجام نشد."
-          },
-          500
-        );
-      }
-    }
-
-    /*
-     * =========================
-     * UNKNOWN API
-     * =========================
-     */
-    if (url.pathname.startsWith("/api/")) {
-      return json(
-        {
-          ok: false,
-          error: "API endpoint not found"
-        },
-        404
-      );
-    }
-
-    /*
-     * =========================
-     * STATIC WEBSITE
-     * =========================
-     */
-    if (env.ASSETS) {
-      return env.ASSETS.fetch(request);
-    }
-
-    return new Response(
-      "ASSETS binding is not configured.",
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "text/plain; charset=UTF-8"
-        }
-      }
-    );
-  }
-};
