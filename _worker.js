@@ -1,489 +1,172 @@
+const NOTES_KEY = "verona:notes";
+
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=UTF-8",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS"
+    }
+  });
+}
+
+function cors(response) {
+  const headers = new Headers(response.headers);
+  headers.set("Access-Control-Allow-Origin", "*");
+  headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+
+async function getNotes(env) {
+  if (!env.VERONA_NOTES) {
+    return [];
+  }
+
+  try {
+    const data = await env.VERONA_NOTES.get(NOTES_KEY, "json");
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("getNotes error:", error);
+    return [];
+  }
+}
+
+async function saveNotes(env, notes) {
+  if (!env.VERONA_NOTES) {
+    throw new Error("VERONA_NOTES binding is missing");
+  }
+
+  await env.VERONA_NOTES.put(
+    NOTES_KEY,
+    JSON.stringify(notes)
+  );
+}
+
 export default {
   async fetch(request, env, ctx) {
-
     const url = new URL(request.url);
-    const path = url.pathname;
-
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization"
-    };
-
-    const json = (data, status = 200) => {
-      return new Response(JSON.stringify(data), {
-        status,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json; charset=utf-8"
-        }
-      });
-    };
 
     if (request.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: corsHeaders
+      return cors(new Response(null, { status: 204 }));
+    }
+
+    /*
+     * =========================
+     * GET NOTES
+     * =========================
+     */
+    if (
+      url.pathname === "/api/notes" &&
+      request.method === "GET"
+    ) {
+      const notes = await getNotes(env);
+
+      return json({
+        ok: true,
+        notes
       });
     }
 
-    const NOTES_KEY = "verona:notes";
-
-    const isApiRequest = path.startsWith("/api/");
-
     /*
-     * =========================================================
-     * KV - NOTES
-     * =========================================================
+     * =========================
+     * ADD NOTE
+     * =========================
      */
-
-    async function getNotes() {
-
-      if (!env.VERONA_NOTES) {
-        throw new Error(
-          "VERONA_NOTES binding is not configured."
-        );
-      }
-
-      try {
-
-        const value = await env.VERONA_NOTES.get(
-          NOTES_KEY,
-          "json"
-        );
-
-        return Array.isArray(value)
-          ? value
-          : [];
-
-      } catch (error) {
-
-        console.error(
-          "GET NOTES ERROR:",
-          error
-        );
-
-        return [];
-      }
-    }
-
-    async function saveNotes(notes) {
-
-      if (!env.VERONA_NOTES) {
-        throw new Error(
-          "VERONA_NOTES binding is not configured."
-        );
-      }
-
-      await env.VERONA_NOTES.put(
-        NOTES_KEY,
-        JSON.stringify(notes)
-      );
-    }
-
-    /*
-     * =========================================================
-     * R2 - MEDIA
-     * =========================================================
-     */
-
-    function hasR2() {
-      return Boolean(env.VERONA_MEDIA);
-    }
-
-    /*
-     * =========================================================
-     * API: GET MEDIA
-     *
-     * /api/media/notes/xxxx/image.jpg
-     * /api/media/notes/xxxx/voice.webm
-     * =========================================================
-     */
-
     if (
-      path.startsWith("/api/media/") &&
-      request.method === "GET"
+      url.pathname === "/api/notes" &&
+      request.method === "POST"
     ) {
-
-      if (!hasR2()) {
-        return new Response(
-          "VERONA_MEDIA R2 binding is not configured.",
-          {
-            status: 500,
-            headers: {
-              "Content-Type":
-                "text/plain; charset=utf-8"
-            }
-          }
-        );
-      }
-
-      const key = decodeURIComponent(
-        path.replace("/api/media/", "")
-      );
-
-      if (!key) {
-        return new Response(
-          "Media key is missing.",
-          {
-            status: 400
-          }
-        );
-      }
-
       try {
+        const body = await request.json();
 
-        const object =
-          await env.VERONA_MEDIA.get(key);
+        const text =
+          typeof body.text === "string"
+            ? body.text.trim()
+            : "";
 
-        if (!object) {
+        const hasImage =
+          body.image &&
+          typeof body.image.data === "string" &&
+          body.image.data.length > 0;
 
-          return new Response(
-            "File not found.",
+        const hasVoice =
+          body.voice &&
+          typeof body.voice.data === "string" &&
+          body.voice.data.length > 0;
+
+        /*
+         * فعلاً چون R2/Supabase نداریم،
+         * فایل‌های عکس و صدا ذخیره نمی‌شوند.
+         *
+         * به جای خراب شدن کل درخواست،
+         * پیام واضح به کاربر برمی‌گردانیم.
+         */
+        if (hasImage || hasVoice) {
+          return json(
             {
-              status: 404
-            }
+              ok: false,
+              error:
+                "ذخیره عکس و ویس فعلاً فعال نیست. ابتدا فضای ذخیره‌سازی فایل را متصل می‌کنیم."
+            },
+            503
           );
         }
 
-        const headers = new Headers();
-
-        object.writeHttpMetadata(headers);
-
-        headers.set(
-          "etag",
-          object.httpEtag
-        );
-
-        headers.set(
-          "Cache-Control",
-          "public, max-age=31536000, immutable"
-        );
-
-        return new Response(
-          object.body,
-          {
-            status: 200,
-            headers
-          }
-        );
-
-      } catch (error) {
-
-        console.error(
-          "GET MEDIA ERROR:",
-          error
-        );
-
-        return new Response(
-          "خطا در دریافت فایل.",
-          {
-            status: 500
-          }
-        );
-      }
-    }
-
-    /*
-     * =========================================================
-     * API: GET NOTES
-     * =========================================================
-     */
-
-    if (
-      path === "/api/notes" &&
-      request.method === "GET"
-    ) {
-
-      try {
-
-        const notes =
-          await getNotes();
-
-        return json({
-          success: true,
-          notes
-        });
-
-      } catch (error) {
-
-        return json(
-          {
-            success: false,
-            error:
-              error?.message ||
-              "خطا در دریافت یادداشت‌ها"
-          },
-          500
-        );
-      }
-    }
-
-    /*
-     * =========================================================
-     * API: CREATE NOTE
-     * =========================================================
-     */
-
-    if (
-      path === "/api/notes" &&
-      request.method === "POST"
-    ) {
-
-      try {
-
-        const body =
-          await request.json();
-
-        const text =
-          String(
-            body?.text || ""
-          ).trim();
-
-        const image =
-          body?.image || null;
-
-        const voice =
-          body?.voice || null;
-
-        const hasImage =
-          Boolean(
-            image &&
-            typeof image === "object" &&
-            image.data
-          );
-
-        const hasVoice =
-          Boolean(
-            voice &&
-            typeof voice === "object" &&
-            voice.data
-          );
-
-        if (
-          !text &&
-          !hasImage &&
-          !hasVoice
-        ) {
-
+        if (!text) {
           return json(
             {
-              success: false,
-              error:
-                "یادداشت خالی است."
+              ok: false,
+              error: "متن یادداشت خالی است."
             },
             400
           );
         }
 
-        /*
-         * اگر عکس یا صدا وجود دارد،
-         * باید R2 فعال باشد.
-         */
-
-        if (
-          (hasImage || hasVoice) &&
-          !hasR2()
-        ) {
-
-          return json(
-            {
-              success: false,
-              error:
-                "فضای ذخیره‌سازی Cloudflare R2 هنوز متصل نشده است."
-            },
-            500
-          );
-        }
-
-        const notes =
-          await getNotes();
-
-        const id =
-          Date.now().toString(36) +
-          "-" +
-          Math.random()
-            .toString(36)
-            .slice(2, 10);
-
-        const createdAt =
-          Date.now();
+        const notes = await getNotes(env);
 
         const note = {
-
-          id,
+          id:
+            Date.now().toString(36) +
+            Math.random().toString(36).slice(2, 8),
 
           text,
 
-          createdAt,
+          createdAt: new Date().toISOString(),
 
           image: null,
 
           voice: null
         };
 
-        /*
-         * =====================================================
-         * IMAGE
-         * =====================================================
-         */
-
-        if (hasImage) {
-
-          const contentType =
-            image.type ||
-            "image/jpeg";
-
-          const extension =
-            contentType.includes("png")
-              ? "png"
-              : contentType.includes("webp")
-              ? "webp"
-              : contentType.includes("gif")
-              ? "gif"
-              : "jpg";
-
-          const imageKey =
-            `notes/${id}/image.${extension}`;
-
-          try {
-
-            const binary =
-              Uint8Array.from(
-                atob(image.data),
-                char =>
-                  char.charCodeAt(0)
-              );
-
-            await env.VERONA_MEDIA.put(
-              imageKey,
-              binary,
-              {
-                httpMetadata: {
-                  contentType
-                }
-              }
-            );
-
-          } catch (error) {
-
-            console.error(
-              "IMAGE UPLOAD ERROR:",
-              error
-            );
-
-            throw new Error(
-              "آپلود عکس انجام نشد."
-            );
-          }
-
-          note.image = {
-
-            url:
-              `/api/media/${encodeURIComponent(
-                imageKey
-              )}`,
-
-            key:
-              imageKey
-          };
-        }
-
-        /*
-         * =====================================================
-         * VOICE
-         * =====================================================
-         */
-
-        if (hasVoice) {
-
-          const contentType =
-            voice.type ||
-            "audio/webm";
-
-          const voiceKey =
-            `notes/${id}/voice.webm`;
-
-          try {
-
-            const binary =
-              Uint8Array.from(
-                atob(voice.data),
-                char =>
-                  char.charCodeAt(0)
-              );
-
-            await env.VERONA_MEDIA.put(
-              voiceKey,
-              binary,
-              {
-                httpMetadata: {
-                  contentType
-                }
-              }
-            );
-
-          } catch (error) {
-
-            console.error(
-              "VOICE UPLOAD ERROR:",
-              error
-            );
-
-            throw new Error(
-              "آپلود صدا انجام نشد."
-            );
-          }
-
-          note.voice = {
-
-            url:
-              `/api/media/${encodeURIComponent(
-                voiceKey
-              )}`,
-
-            key:
-              voiceKey
-          };
-        }
-
-        /*
-         * =====================================================
-         * SAVE NOTE
-         * =====================================================
-         */
-
         notes.unshift(note);
 
-        const limitedNotes =
-          notes.slice(0, 1000);
+        /*
+         * حداکثر 500 یادداشت نگه می‌داریم
+         * تا KV بی‌دلیل پر نشود.
+         */
+        const limitedNotes = notes.slice(0, 500);
 
-        await saveNotes(
-          limitedNotes
-        );
+        await saveNotes(env, limitedNotes);
 
         return json({
-
-          success: true,
-
+          ok: true,
           note
-
         });
-
       } catch (error) {
-
-        console.error(
-          "CREATE NOTE ERROR:",
-          error
-        );
+        console.error("POST /api/notes error:", error);
 
         return json(
           {
-            success: false,
-
-            error:
-              error?.message ||
-              "خطا در ثبت یادداشت"
+            ok: false,
+            error: "ثبت یادداشت انجام نشد."
           },
           500
         );
@@ -491,161 +174,71 @@ export default {
     }
 
     /*
-     * =========================================================
-     * API: DELETE NOTE
-     * =========================================================
+     * =========================
+     * DELETE NOTE
+     * =========================
      */
-
     if (
-      path.startsWith("/api/notes/") &&
+      url.pathname.startsWith("/api/notes/") &&
       request.method === "DELETE"
     ) {
-
       try {
-
         const auth =
-          request.headers.get(
-            "Authorization"
-          ) || "";
+          request.headers.get("Authorization") || "";
 
-        if (
-          auth !== "Bearer 4450"
-        ) {
-
+        if (auth !== "Bearer 4450") {
           return json(
             {
-              success: false,
-              error:
-                "دسترسی غیرمجاز"
+              ok: false,
+              error: "دسترسی غیرمجاز"
             },
             401
           );
         }
 
-        const id =
-          decodeURIComponent(
-            path.replace(
-              "/api/notes/",
-              ""
-            )
-          );
+        const id = decodeURIComponent(
+          url.pathname.substring("/api/notes/".length)
+        );
 
         if (!id) {
-
           return json(
             {
-              success: false,
-              error:
-                "شناسه یادداشت نامعتبر است."
+              ok: false,
+              error: "شناسه یادداشت مشخص نیست."
             },
             400
           );
         }
 
-        const notes =
-          await getNotes();
+        const notes = await getNotes(env);
 
-        const note =
-          notes.find(
-            n =>
-              String(n.id) ===
-              String(id)
-          );
+        const newNotes = notes.filter(
+          note => String(note.id) !== String(id)
+        );
 
-        if (!note) {
-
+        if (newNotes.length === notes.length) {
           return json(
             {
-              success: false,
-              error:
-                "یادداشت پیدا نشد."
+              ok: false,
+              error: "یادداشت پیدا نشد."
             },
             404
           );
         }
 
-        /*
-         * حذف عکس از R2
-         */
-
-        if (
-          note.image &&
-          note.image.key &&
-          hasR2()
-        ) {
-
-          try {
-
-            await env.VERONA_MEDIA.delete(
-              note.image.key
-            );
-
-          } catch (error) {
-
-            console.error(
-              "DELETE IMAGE ERROR:",
-              error
-            );
-          }
-        }
-
-        /*
-         * حذف صدا از R2
-         */
-
-        if (
-          note.voice &&
-          note.voice.key &&
-          hasR2()
-        ) {
-
-          try {
-
-            await env.VERONA_MEDIA.delete(
-              note.voice.key
-            );
-
-          } catch (error) {
-
-            console.error(
-              "DELETE VOICE ERROR:",
-              error
-            );
-          }
-        }
-
-        /*
-         * حذف یادداشت از KV
-         */
-
-        const remaining =
-          notes.filter(
-            n =>
-              String(n.id) !==
-              String(id)
-          );
-
-        await saveNotes(
-          remaining
-        );
+        await saveNotes(env, newNotes);
 
         return json({
-          success: true
+          ok: true,
+          message: "یادداشت حذف شد."
         });
-
       } catch (error) {
-
-        console.error(
-          "DELETE NOTE ERROR:",
-          error
-        );
+        console.error("DELETE /api/notes error:", error);
 
         return json(
           {
-            success: false,
-            error:
-              error?.message ||
-              "خطا در حذف یادداشت"
+            ok: false,
+            error: "حذف یادداشت انجام نشد."
           },
           500
         );
@@ -653,49 +246,35 @@ export default {
     }
 
     /*
-     * =========================================================
+     * =========================
      * UNKNOWN API
-     * =========================================================
+     * =========================
      */
-
-    if (isApiRequest) {
-
+    if (url.pathname.startsWith("/api/")) {
       return json(
         {
-          success: false,
-          error:
-            "API route not found.",
-          path
+          ok: false,
+          error: "API endpoint not found"
         },
         404
       );
     }
 
     /*
-     * =========================================================
+     * =========================
      * STATIC WEBSITE
-     * =========================================================
+     * =========================
      */
-
-    if (
-      env.ASSETS &&
-      typeof env.ASSETS.fetch ===
-        "function"
-    ) {
-
-      return env.ASSETS.fetch(
-        request
-      );
+    if (env.ASSETS) {
+      return env.ASSETS.fetch(request);
     }
 
     return new Response(
-      "ASSETS binding is not available. Please deploy this Worker with wrangler.jsonc.",
+      "ASSETS binding is not configured.",
       {
         status: 500,
-
         headers: {
-          "Content-Type":
-            "text/plain; charset=utf-8"
+          "Content-Type": "text/plain; charset=UTF-8"
         }
       }
     );
