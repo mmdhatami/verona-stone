@@ -1,95 +1,68 @@
-const CACHE = "verona-stone-v6";
+self.addEventListener("push", event => {
+  let data = {};
 
-const FILES = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (e) {
+    data = {
+      title: "فروشگاه سنگ ورونا",
+      body: event.data ? event.data.text() : "اعلان جدید"
+    };
+  }
 
-  "./images/page-kabinet.jpg.jpg",
-  "./images/pelleh.jpg.jpg",
-  "./images/travertine.jpg.jpg",
-  "./images/marmerit.jpg.jpg",
-  "./images/farsh.jpg.jpg",
-  "./images/crystal-granite.jpg.jpg",
-  "./images/elamanzibasaazi.jpg.jpg"
-];
+  const title = data.title || "📝 فروشگاه سنگ ورونا";
+
+  const options = {
+    body: data.body || "یک اعلان جدید برای شما وجود دارد.",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
+    dir: "rtl",
+    lang: "fa",
+    vibrate: [300, 150, 300, 150, 500],
+    data: {
+      url: data.url || "/"
+    },
+    actions: [
+      {
+        action: "open",
+        title: "مشاهده"
+      }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+
+  const targetUrl =
+    event.notification?.data?.url || "/";
+
+  event.waitUntil(
+    clients.matchAll({
+      type: "window",
+      includeUncontrolled: true
+    }).then(clientList => {
+      for (const client of clientList) {
+        if ("focus" in client) {
+          return client.focus();
+        }
+      }
+
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
+});
 
 self.addEventListener("install", event => {
-
   self.skipWaiting();
-
-  event.waitUntil(
-    caches.open(CACHE).then(cache => {
-      return cache.addAll(FILES);
-    })
-  );
-
 });
-
 
 self.addEventListener("activate", event => {
-
-  event.waitUntil(
-
-    caches.keys().then(keys => {
-
-      return Promise.all(
-
-        keys.map(key => {
-
-          if(key !== CACHE){
-            return caches.delete(key);
-          }
-
-        })
-
-      );
-
-    }).then(() => {
-
-      return self.clients.claim();
-
-    })
-
-  );
-
-});
-
-
-self.addEventListener("fetch", event => {
-
-  event.respondWith(
-
-    fetch(event.request)
-
-      .then(response => {
-
-        if(
-          response &&
-          response.status === 200 &&
-          event.request.method === "GET"
-        ){
-
-          const copy = response.clone();
-
-          caches.open(CACHE).then(cache => {
-
-            cache.put(event.request,copy);
-
-          });
-
-        }
-
-        return response;
-
-      })
-
-      .catch(() => {
-
-        return caches.match(event.request);
-
-      })
-
-  );
-
+  event.waitUntil(self.clients.claim());
 });
