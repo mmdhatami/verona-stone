@@ -11,23 +11,14 @@ export default {
     };
 
     const json = (data, status = 200) => {
-      return new Response(
-        JSON.stringify(data),
-        {
-          status,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json; charset=utf-8"
-          }
+      return new Response(JSON.stringify(data), {
+        status,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json; charset=utf-8"
         }
-      );
+      });
     };
-
-    /*
-     * =========================================================
-     * CORS
-     * =========================================================
-     */
 
     if (request.method === "OPTIONS") {
       return new Response(null, {
@@ -36,30 +27,13 @@ export default {
       });
     }
 
-    /*
-     * =========================================================
-     * ENVIRONMENT
-     * =========================================================
-     */
+    const NOTES_KEY = "verona:notes";
 
-    const SUPABASE_URL =
-      env.supabase_url || "";
-
-    const SUPABASE_KEY =
-      env.cloudflare_worker || "";
-
-    const BUCKET =
-      "verona-media";
-
-    const NOTES_KEY =
-      "verona:notes";
-
-    const isApiRequest =
-      path.startsWith("/api/");
+    const isApiRequest = path.startsWith("/api/");
 
     /*
      * =========================================================
-     * KV
+     * KV - NOTES
      * =========================================================
      */
 
@@ -73,17 +47,14 @@ export default {
 
       try {
 
-        const value =
-          await env.VERONA_NOTES.get(
-            NOTES_KEY,
-            "json"
-          );
+        const value = await env.VERONA_NOTES.get(
+          NOTES_KEY,
+          "json"
+        );
 
-        if (Array.isArray(value)) {
-          return value;
-        }
-
-        return [];
+        return Array.isArray(value)
+          ? value
+          : [];
 
       } catch (error) {
 
@@ -112,158 +83,110 @@ export default {
 
     /*
      * =========================================================
-     * SUPABASE
+     * R2 - MEDIA
      * =========================================================
      */
 
-    function hasSupabase() {
-
-      return Boolean(
-        SUPABASE_URL &&
-        SUPABASE_KEY
-      );
+    function hasR2() {
+      return Boolean(env.VERONA_MEDIA);
     }
 
-    function supabaseStorageUrl(key) {
+    /*
+     * =========================================================
+     * API: GET MEDIA
+     *
+     * /api/media/notes/xxxx/image.jpg
+     * /api/media/notes/xxxx/voice.webm
+     * =========================================================
+     */
 
-      if (!SUPABASE_URL) {
-        return "";
-      }
-
-      return (
-        `${SUPABASE_URL}` +
-        `/storage/v1/object/public/${BUCKET}/${key}`
-      );
-    }
-
-    async function uploadMedia(
-      key,
-      base64,
-      contentType
+    if (
+      path.startsWith("/api/media/") &&
+      request.method === "GET"
     ) {
 
-      if (!hasSupabase()) {
-
-        throw new Error(
-          "برای ثبت عکس یا صدا، اتصال Supabase در Cloudflare تنظیم نشده است."
-        );
-      }
-
-      if (!base64) {
-
-        throw new Error(
-          "فایل ارسالی خالی است."
-        );
-      }
-
-      let binary;
-
-      try {
-
-        binary =
-          Uint8Array.from(
-            atob(base64),
-            char =>
-              char.charCodeAt(0)
-          );
-
-      } catch (error) {
-
-        throw new Error(
-          "فرمت فایل ارسالی نامعتبر است."
-        );
-      }
-
-      const response =
-        await fetch(
-          `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${key}`,
+      if (!hasR2()) {
+        return new Response(
+          "VERONA_MEDIA R2 binding is not configured.",
           {
-            method: "POST",
-
+            status: 500,
             headers: {
-              "Authorization":
-                `Bearer ${SUPABASE_KEY}`,
-
-              "apikey":
-                SUPABASE_KEY,
-
               "Content-Type":
-                contentType,
-
-              "x-upsert":
-                "true"
-            },
-
-            body: binary
+                "text/plain; charset=utf-8"
+            }
           }
         );
-
-      if (!response.ok) {
-
-        const errorText =
-          await response.text();
-
-        console.error(
-          "SUPABASE UPLOAD ERROR:",
-          errorText
-        );
-
-        throw new Error(
-          "آپلود فایل در Supabase انجام نشد."
-        );
       }
 
-      return supabaseStorageUrl(
-        key
+      const key = decodeURIComponent(
+        path.replace("/api/media/", "")
       );
-    }
-
-    async function deleteMedia(key) {
 
       if (!key) {
-        return;
-      }
-
-      if (!hasSupabase()) {
-        return;
+        return new Response(
+          "Media key is missing.",
+          {
+            status: 400
+          }
+        );
       }
 
       try {
 
-        await fetch(
-          `${SUPABASE_URL}/storage/v1/object/${BUCKET}`,
+        const object =
+          await env.VERONA_MEDIA.get(key);
+
+        if (!object) {
+
+          return new Response(
+            "File not found.",
+            {
+              status: 404
+            }
+          );
+        }
+
+        const headers = new Headers();
+
+        object.writeHttpMetadata(headers);
+
+        headers.set(
+          "etag",
+          object.httpEtag
+        );
+
+        headers.set(
+          "Cache-Control",
+          "public, max-age=31536000, immutable"
+        );
+
+        return new Response(
+          object.body,
           {
-            method: "DELETE",
-
-            headers: {
-              "Authorization":
-                `Bearer ${SUPABASE_KEY}`,
-
-              "apikey":
-                SUPABASE_KEY,
-
-              "Content-Type":
-                "application/json"
-            },
-
-            body: JSON.stringify({
-              prefixes: [key]
-            })
+            status: 200,
+            headers
           }
         );
 
       } catch (error) {
 
         console.error(
-          "DELETE MEDIA ERROR:",
+          "GET MEDIA ERROR:",
           error
+        );
+
+        return new Response(
+          "خطا در دریافت فایل.",
+          {
+            status: 500
+          }
         );
       }
     }
 
     /*
      * =========================================================
-     * GET NOTES
+     * API: GET NOTES
      * =========================================================
      */
 
@@ -298,7 +221,7 @@ export default {
 
     /*
      * =========================================================
-     * CREATE NOTE
+     * API: CREATE NOTE
      * =========================================================
      */
 
@@ -323,11 +246,6 @@ export default {
         const voice =
           body?.voice || null;
 
-        /*
-         * فقط وقتی واقعاً data وجود دارد
-         * فایل را پردازش می‌کنیم.
-         */
-
         const hasImage =
           Boolean(
             image &&
@@ -341,10 +259,6 @@ export default {
             typeof voice === "object" &&
             voice.data
           );
-
-        /*
-         * یادداشت کاملاً خالی
-         */
 
         if (
           !text &&
@@ -363,15 +277,27 @@ export default {
         }
 
         /*
-         * گرفتن یادداشت‌های قبلی
+         * اگر عکس یا صدا وجود دارد،
+         * باید R2 فعال باشد.
          */
+
+        if (
+          (hasImage || hasVoice) &&
+          !hasR2()
+        ) {
+
+          return json(
+            {
+              success: false,
+              error:
+                "فضای ذخیره‌سازی Cloudflare R2 هنوز متصل نشده است."
+            },
+            500
+          );
+        }
 
         const notes =
           await getNotes();
-
-        /*
-         * شناسه یکتا
-         */
 
         const id =
           Date.now().toString(36) +
@@ -382,10 +308,6 @@ export default {
 
         const createdAt =
           Date.now();
-
-        /*
-         * یادداشت جدید
-         */
 
         const note = {
 
@@ -408,24 +330,59 @@ export default {
 
         if (hasImage) {
 
-          const imageKey =
-            `notes/${id}/image`;
-
-          const imageType =
+          const contentType =
             image.type ||
             "image/jpeg";
 
-          const imageUrl =
-            await uploadMedia(
+          const extension =
+            contentType.includes("png")
+              ? "png"
+              : contentType.includes("webp")
+              ? "webp"
+              : contentType.includes("gif")
+              ? "gif"
+              : "jpg";
+
+          const imageKey =
+            `notes/${id}/image.${extension}`;
+
+          try {
+
+            const binary =
+              Uint8Array.from(
+                atob(image.data),
+                char =>
+                  char.charCodeAt(0)
+              );
+
+            await env.VERONA_MEDIA.put(
               imageKey,
-              image.data,
-              imageType
+              binary,
+              {
+                httpMetadata: {
+                  contentType
+                }
+              }
             );
+
+          } catch (error) {
+
+            console.error(
+              "IMAGE UPLOAD ERROR:",
+              error
+            );
+
+            throw new Error(
+              "آپلود عکس انجام نشد."
+            );
+          }
 
           note.image = {
 
             url:
-              imageUrl,
+              `/api/media/${encodeURIComponent(
+                imageKey
+              )}`,
 
             key:
               imageKey
@@ -440,24 +397,50 @@ export default {
 
         if (hasVoice) {
 
-          const voiceKey =
-            `notes/${id}/voice.webm`;
-
-          const voiceType =
+          const contentType =
             voice.type ||
             "audio/webm";
 
-          const voiceUrl =
-            await uploadMedia(
+          const voiceKey =
+            `notes/${id}/voice.webm`;
+
+          try {
+
+            const binary =
+              Uint8Array.from(
+                atob(voice.data),
+                char =>
+                  char.charCodeAt(0)
+              );
+
+            await env.VERONA_MEDIA.put(
               voiceKey,
-              voice.data,
-              voiceType
+              binary,
+              {
+                httpMetadata: {
+                  contentType
+                }
+              }
             );
+
+          } catch (error) {
+
+            console.error(
+              "VOICE UPLOAD ERROR:",
+              error
+            );
+
+            throw new Error(
+              "آپلود صدا انجام نشد."
+            );
+          }
 
           note.voice = {
 
             url:
-              voiceUrl,
+              `/api/media/${encodeURIComponent(
+                voiceKey
+              )}`,
 
             key:
               voiceKey
@@ -466,7 +449,7 @@ export default {
 
         /*
          * =====================================================
-         * SAVE
+         * SAVE NOTE
          * =====================================================
          */
 
@@ -478,12 +461,6 @@ export default {
         await saveNotes(
           limitedNotes
         );
-
-        /*
-         * =====================================================
-         * SUCCESS
-         * =====================================================
-         */
 
         return json({
 
@@ -515,7 +492,7 @@ export default {
 
     /*
      * =========================================================
-     * DELETE NOTE
+     * API: DELETE NOTE
      * =========================================================
      */
 
@@ -538,7 +515,6 @@ export default {
           return json(
             {
               success: false,
-
               error:
                 "دسترسی غیرمجاز"
             },
@@ -559,7 +535,6 @@ export default {
           return json(
             {
               success: false,
-
               error:
                 "شناسه یادداشت نامعتبر است."
             },
@@ -582,7 +557,6 @@ export default {
           return json(
             {
               success: false,
-
               error:
                 "یادداشت پیدا نشد."
             },
@@ -591,35 +565,57 @@ export default {
         }
 
         /*
-         * حذف عکس از Supabase
+         * حذف عکس از R2
          */
 
         if (
           note.image &&
-          note.image.key
+          note.image.key &&
+          hasR2()
         ) {
 
-          await deleteMedia(
-            note.image.key
-          );
+          try {
+
+            await env.VERONA_MEDIA.delete(
+              note.image.key
+            );
+
+          } catch (error) {
+
+            console.error(
+              "DELETE IMAGE ERROR:",
+              error
+            );
+          }
         }
 
         /*
-         * حذف صدا از Supabase
+         * حذف صدا از R2
          */
 
         if (
           note.voice &&
-          note.voice.key
+          note.voice.key &&
+          hasR2()
         ) {
 
-          await deleteMedia(
-            note.voice.key
-          );
+          try {
+
+            await env.VERONA_MEDIA.delete(
+              note.voice.key
+            );
+
+          } catch (error) {
+
+            console.error(
+              "DELETE VOICE ERROR:",
+              error
+            );
+          }
         }
 
         /*
-         * حذف از KV
+         * حذف یادداشت از KV
          */
 
         const remaining =
@@ -634,9 +630,7 @@ export default {
         );
 
         return json({
-
           success: true
-
         });
 
       } catch (error) {
@@ -649,7 +643,6 @@ export default {
         return json(
           {
             success: false,
-
             error:
               error?.message ||
               "خطا در حذف یادداشت"
@@ -670,10 +663,8 @@ export default {
       return json(
         {
           success: false,
-
           error:
             "API route not found.",
-
           path
         },
         404
@@ -696,12 +687,6 @@ export default {
         request
       );
     }
-
-    /*
-     * =========================================================
-     * ASSETS ERROR
-     * =========================================================
-     */
 
     return new Response(
       "ASSETS binding is not available. Please deploy this Worker with wrangler.jsonc.",
