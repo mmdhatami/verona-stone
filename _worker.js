@@ -547,3 +547,174 @@ export default {
 
     /*
      * =========================
+     * DELETE NOTE
+     * =========================
+     */
+    if (
+      url.pathname.startsWith(
+        "/api/notes/"
+      ) &&
+      request.method === "DELETE"
+    ) {
+      try {
+        const auth =
+          request.headers.get(
+            "Authorization"
+          ) || "";
+
+        /*
+         * رمز فعلی پنل مدیریت پروژه
+         */
+        if (auth !== "Bearer 4450") {
+          return json(
+            {
+              ok: false,
+              error:
+                "دسترسی غیرمجاز"
+            },
+            401
+          );
+        }
+
+        const id =
+          decodeURIComponent(
+            url.pathname.substring(
+              "/api/notes/".length
+            )
+          );
+
+        if (!id) {
+          return json(
+            {
+              ok: false,
+              error:
+                "شناسه یادداشت مشخص نیست."
+            },
+            400
+          );
+        }
+
+        const notes =
+          await getNotes(env);
+
+        const note =
+          notes.find(
+            item =>
+              String(item.id) ===
+              String(id)
+          );
+
+        if (!note) {
+          return json(
+            {
+              ok: false,
+              error:
+                "یادداشت پیدا نشد."
+            },
+            404
+          );
+        }
+
+        /*
+         * فایل عکس را از PostFile حذف می‌کنیم
+         */
+        if (
+          note.image &&
+          note.image.file_id
+        ) {
+          await deleteFromPostFile(
+            env,
+            note.image.file_id
+          );
+        }
+
+        /*
+         * فایل ویس را از PostFile حذف می‌کنیم
+         */
+        if (
+          note.voice &&
+          note.voice.file_id
+        ) {
+          await deleteFromPostFile(
+            env,
+            note.voice.file_id
+          );
+        }
+
+        const newNotes =
+          notes.filter(
+            item =>
+              String(item.id) !==
+              String(id)
+          );
+
+        await saveNotes(
+          env,
+          newNotes
+        );
+
+        return json({
+          ok: true,
+          message:
+            "یادداشت و فایل‌های مربوط به آن حذف شدند."
+        });
+      } catch (error) {
+        console.error(
+          "DELETE /api/notes error:",
+          error
+        );
+
+        return json(
+          {
+            ok: false,
+            error:
+              "حذف یادداشت انجام نشد."
+          },
+          500
+        );
+      }
+    }
+
+    /*
+     * =========================
+     * OTHER API ROUTES
+     * =========================
+     */
+    if (
+      url.pathname.startsWith(
+        "/api/"
+      )
+    ) {
+      return json(
+        {
+          ok: false,
+          error:
+            "API endpoint not found"
+        },
+        404
+      );
+    }
+
+    /*
+     * =========================
+     * STATIC WEBSITE
+     * =========================
+     */
+    if (env.ASSETS) {
+      return env.ASSETS.fetch(
+        request
+      );
+    }
+
+    return new Response(
+      "ASSETS binding is not configured.",
+      {
+        status: 500,
+        headers: {
+          "Content-Type":
+            "text/plain; charset=UTF-8"
+        }
+      }
+    );
+  }
+};
