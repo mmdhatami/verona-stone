@@ -1606,13 +1606,22 @@ categories.forEach(c=>{
 const count=categoryProducts(c.name).length;
 
 box.innerHTML+=`
-<div class="cat">
+<div
+class="cat"
+onclick="showCategory('${encodeURIComponent(c.name)}')"
+style="cursor:pointer"
+>
 ${categoryImageHtml(c)}
 <div class="catbody">
 <h3>${esc(c.name)}</h3>
 <div style="font-size:12px;color:#788">${count} محصول</div>
 <div class="mini">
-<button onclick="showCategory('${encodeURIComponent(c.name)}')">مشاهده محصولات</button>
+<button
+type="button"
+onclick="event.stopPropagation();showCategory('${encodeURIComponent(c.name)}')"
+>
+مشاهده محصولات
+</button>
 </div>
 </div>
 </div>`;
